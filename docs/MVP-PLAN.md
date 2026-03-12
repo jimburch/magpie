@@ -14,11 +14,15 @@
 
 ### Tasks
 
-- [ ] Initialize SvelteKit project with TypeScript
-- [ ] Set up Tailwind CSS + shadcn-svelte
-- [ ] Configure Drizzle ORM + PostgreSQL connection
-- [ ] Define database schema (`schema.ts`) for all tables
-- [ ] Run initial migration
+- [x] Initialize SvelteKit project with TypeScript
+- [x] Set up Tailwind CSS + shadcn-svelte
+- [x] Configure Drizzle ORM + PostgreSQL connection
+- [x] Define database schema (`schema.ts`) for all tables
+- [x] Run initial migration
+- [x] Add shared types and Zod validation schemas
+- [x] Build health check API endpoint (`/api/v1/health`)
+- [x] Add consistent API response helpers (`success` / `error`)
+- [x] Verify full stack works (dev server + health endpoint + all tests pass)
 - [ ] Set up Lucia Auth v3 + Arctic
 - [ ] Implement GitHub OAuth flow (web): login + callback routes
 - [ ] Create `hooks.server.ts` for session validation
