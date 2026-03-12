@@ -35,6 +35,19 @@ export type LayoutUser = {
 	bio: string | null;
 };
 
+export type ProfileUser = {
+	id: string;
+	username: string;
+	avatarUrl: string;
+	bio: string | null;
+	websiteUrl: string | null;
+	githubUsername: string;
+	setupsCount: number;
+	followersCount: number;
+	followingCount: number;
+	createdAt: Date;
+};
+
 import { z } from 'zod';
 
 export const apiSuccessSchema = <T extends z.ZodType>(dataSchema: T) =>

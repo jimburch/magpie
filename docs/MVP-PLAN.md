@@ -26,8 +26,8 @@
 - [x] Set up auth (Copenhagen Book + Arctic)
 - [x] Implement GitHub OAuth flow (web): login + callback routes
 - [x] Create `hooks.server.ts` for session validation
-- [ ] Build basic layout: navbar (logo, search bar, login/avatar), footer
-- [ ] User profile page (read-only): `(public)/[username]/+page.svelte`
+- [x] Build basic layout: navbar (logo, search bar, login/avatar), footer
+- [x] User profile page (read-only): `(public)/[username]/+page.svelte`
 - [ ] Setup CRUD API routes:
   - `POST /api/v1/setups` — create
   - `GET /api/v1/setups/:owner/:slug` — read

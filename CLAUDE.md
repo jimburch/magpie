@@ -154,6 +154,7 @@ magpie/
 - All user-facing text in components (not in server files) for future i18n
 - Validate all inputs with Zod schemas shared between client and server
 - Use Drizzle's `$inferSelect` and `$inferInsert` for type derivation from schema
+- Check and resolve linter warnings before completing code changes
 
 ## Auth Flow
 
