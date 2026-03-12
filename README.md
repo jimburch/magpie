@@ -27,8 +27,24 @@ A "setup" is the core entity: a manifest (`setup.json`) plus the config files, s
 
 ## Development
 
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v20+)
+- [pnpm](https://pnpm.io/) (v10+)
+- [Docker](https://www.docker.com/) (for local PostgreSQL)
+
+### Setup
+
 ```sh
 pnpm install
+
+# Copy environment variables
+cp .env.example .env
+
+# Start PostgreSQL
+pnpm run db:up
+
+# Start the dev server
 pnpm run dev
 ```
 
@@ -41,8 +57,11 @@ pnpm run dev
 | `pnpm run preview`   | Preview production build           |
 | `pnpm run check`     | TypeScript type checking           |
 | `pnpm run lint`      | ESLint + Prettier                  |
+| `pnpm run format`    | Auto-format with Prettier          |
 | `pnpm run test:unit` | Vitest unit tests                  |
 | `pnpm run test:e2e`  | Playwright end-to-end tests        |
+| `pnpm run db:up`     | Start local PostgreSQL (Docker)    |
+| `pnpm run db:down`   | Stop local PostgreSQL              |
 
 ## Project structure
 
