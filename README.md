@@ -1,4 +1,4 @@
-# Magpie
+# Magpie 🐦‍⬛
 
 Share, discover, and clone AI coding workflows.
 
@@ -34,15 +34,15 @@ pnpm run dev
 
 ### Commands
 
-| Command | Description |
-|---------|-------------|
-| `pnpm run dev` | Start dev server on localhost:5173 |
-| `pnpm run build` | Production build |
-| `pnpm run preview` | Preview production build |
-| `pnpm run check` | TypeScript type checking |
-| `pnpm run lint` | ESLint + Prettier |
-| `pnpm run test:unit` | Vitest unit tests |
-| `pnpm run test:e2e` | Playwright end-to-end tests |
+| Command              | Description                        |
+| -------------------- | ---------------------------------- |
+| `pnpm run dev`       | Start dev server on localhost:5173 |
+| `pnpm run build`     | Production build                   |
+| `pnpm run preview`   | Preview production build           |
+| `pnpm run check`     | TypeScript type checking           |
+| `pnpm run lint`      | ESLint + Prettier                  |
+| `pnpm run test:unit` | Vitest unit tests                  |
+| `pnpm run test:e2e`  | Playwright end-to-end tests        |
 
 ## Project structure
 

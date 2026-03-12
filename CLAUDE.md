@@ -252,7 +252,7 @@ right locations.
 First 10 Steps: Empty Repo to Health Check
 
 1. Initialize SvelteKit project — npx sv create with TypeScript, install dependencies,
-   verify npm run dev works
+   verify pnpm dev works
 2. Install and configure Tailwind CSS — add Tailwind via the SvelteKit integration, set up
    app.css with base/components/utilities directives
 3. Install shadcn-svelte — initialize shadcn-svelte with the default theme, verify a test
@@ -274,5 +274,5 @@ First 10 Steps: Empty Repo to Health Check
 9. Add the consistent API response helpers — create a small utility in src/lib/server/ for
    the standard { data: T } / { error, code } JSON response format, use it in the health
    endpoint
-10. Verify the full stack works — run npm run dev, hit localhost:5173/api/v1/health in a
+10. Verify the full stack works — run pnpm dev, hit localhost:5173/api/v1/health in a
     browser, confirm it returns the JSON response with a successful DB check
