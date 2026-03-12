@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { requireApiAuth } from '$lib/server/guards';
-import { success, error } from '$lib/server/responses';
+import { success, error, isUniqueViolation, parseRequestBody } from '$lib/server/responses';
 import { createSetupWithFilesSchema } from '$lib/types';
 import { createSetup } from '$lib/server/queries/setups';
 
@@ -9,28 +9,14 @@ export const POST: RequestHandler = async (event) => {
 	if (authResult instanceof Response) return authResult;
 	const user = authResult;
 
-	let body: unknown;
-	try {
-		body = await event.request.json();
-	} catch {
-		return error('Invalid JSON', 'INVALID_JSON', 400);
-	}
-
-	const parsed = createSetupWithFilesSchema.safeParse(body);
-	if (!parsed.success) {
-		return error(parsed.error.issues[0].message, 'VALIDATION_ERROR', 400);
-	}
+	const parsed = await parseRequestBody(event.request, createSetupWithFilesSchema);
+	if (parsed instanceof Response) return parsed;
 
 	try {
-		const setup = await createSetup(user.id, parsed.data);
+		const setup = await createSetup(user.id, parsed);
 		return success(setup, 201);
 	} catch (err: unknown) {
-		if (
-			typeof err === 'object' &&
-			err !== null &&
-			'code' in err &&
-			(err as { code: string }).code === '23505'
-		) {
+		if (isUniqueViolation(err)) {
 			return error('A setup with this slug already exists', 'SLUG_TAKEN', 409);
 		}
 		throw err;

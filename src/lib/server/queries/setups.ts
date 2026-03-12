@@ -6,6 +6,18 @@ import type { createSetupWithFilesSchema, updateSetupSchema } from '$lib/types';
 
 type CreateSetupInput = z.infer<typeof createSetupWithFilesSchema>;
 type UpdateSetupInput = z.infer<typeof updateSetupSchema>;
+type FileInput = CreateSetupInput['files'];
+
+function toSetupFileRows(setupId: string, files: NonNullable<FileInput>) {
+	return files.map((f) => ({
+		setupId,
+		source: f.source,
+		target: f.target,
+		placement: f.placement,
+		description: f.description,
+		content: f.content
+	}));
+}
 
 export async function getSetupsByUserId(userId: string) {
 	return db.select().from(setups).where(eq(setups.userId, userId)).orderBy(desc(setups.createdAt));
@@ -57,16 +69,7 @@ export async function createSetup(userId: string, data: CreateSetupInput) {
 			.returning();
 
 		if (data.files && data.files.length > 0) {
-			await tx.insert(setupFiles).values(
-				data.files.map((f) => ({
-					setupId: setup.id,
-					source: f.source,
-					target: f.target,
-					placement: f.placement,
-					description: f.description,
-					content: f.content
-				}))
-			);
+			await tx.insert(setupFiles).values(toSetupFileRows(setup.id, data.files));
 		}
 
 		await tx
@@ -80,12 +83,13 @@ export async function createSetup(userId: string, data: CreateSetupInput) {
 
 export async function updateSetup(id: string, data: UpdateSetupInput) {
 	return db.transaction(async (tx) => {
-		const updateFields: Record<string, unknown> = {};
-		if (data.name !== undefined) updateFields.name = data.name;
-		if (data.slug !== undefined) updateFields.slug = data.slug;
-		if (data.description !== undefined) updateFields.description = data.description;
-		if (data.version !== undefined) updateFields.version = data.version;
-		if (data.readmePath !== undefined) updateFields.readmePath = data.readmePath;
+		const updateFields = {
+			...(data.name !== undefined && { name: data.name }),
+			...(data.slug !== undefined && { slug: data.slug }),
+			...(data.description !== undefined && { description: data.description }),
+			...(data.version !== undefined && { version: data.version }),
+			...(data.readmePath !== undefined && { readmePath: data.readmePath })
+		};
 
 		let setup;
 		if (Object.keys(updateFields).length > 0) {
@@ -103,16 +107,7 @@ export async function updateSetup(id: string, data: UpdateSetupInput) {
 		if (data.files !== undefined) {
 			await tx.delete(setupFiles).where(eq(setupFiles.setupId, id));
 			if (data.files.length > 0) {
-				await tx.insert(setupFiles).values(
-					data.files.map((f) => ({
-						setupId: id,
-						source: f.source,
-						target: f.target,
-						placement: f.placement,
-						description: f.description,
-						content: f.content
-					}))
-				);
+				await tx.insert(setupFiles).values(toSetupFileRows(id, data.files));
 			}
 		}
 

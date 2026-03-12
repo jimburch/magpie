@@ -49,6 +49,7 @@ export type ProfileUser = {
 };
 
 import { z } from 'zod';
+import { placementEnum } from '$lib/server/db/schema';
 
 export const apiSuccessSchema = <T extends z.ZodType>(dataSchema: T) =>
 	z.object({ data: dataSchema });
@@ -72,7 +73,7 @@ export const createSetupSchema = z.object({
 export const createSetupFileSchema = z.object({
 	source: z.string().min(1),
 	target: z.string().min(1),
-	placement: z.enum(['global', 'project', 'relative']),
+	placement: z.enum(placementEnum.enumValues),
 	description: z.string().optional(),
 	content: z.string().min(1)
 });

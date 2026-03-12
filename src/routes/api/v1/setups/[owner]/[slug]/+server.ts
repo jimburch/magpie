@@ -1,6 +1,6 @@
 import type { RequestHandler } from './$types';
 import { requireApiAuth } from '$lib/server/guards';
-import { success, error } from '$lib/server/responses';
+import { success, error, isUniqueViolation, parseRequestBody } from '$lib/server/responses';
 import { updateSetupSchema } from '$lib/types';
 import { getSetupByOwnerSlug, updateSetup, deleteSetup } from '$lib/server/queries/setups';
 
@@ -25,28 +25,14 @@ export const PATCH: RequestHandler = async (event) => {
 		return error('You do not own this setup', 'FORBIDDEN', 403);
 	}
 
-	let body: unknown;
-	try {
-		body = await event.request.json();
-	} catch {
-		return error('Invalid JSON', 'INVALID_JSON', 400);
-	}
-
-	const parsed = updateSetupSchema.safeParse(body);
-	if (!parsed.success) {
-		return error(parsed.error.issues[0].message, 'VALIDATION_ERROR', 400);
-	}
+	const parsed = await parseRequestBody(event.request, updateSetupSchema);
+	if (parsed instanceof Response) return parsed;
 
 	try {
-		const updated = await updateSetup(setup.id, parsed.data);
+		const updated = await updateSetup(setup.id, parsed);
 		return success(updated);
 	} catch (err: unknown) {
-		if (
-			typeof err === 'object' &&
-			err !== null &&
-			'code' in err &&
-			(err as { code: string }).code === '23505'
-		) {
+		if (isUniqueViolation(err)) {
 			return error('A setup with this slug already exists', 'SLUG_TAKEN', 409);
 		}
 		throw err;
