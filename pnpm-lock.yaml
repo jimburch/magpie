@@ -26,6 +26,9 @@ importers:
       tailwind-variants:
         specifier: ^3.2.2
         version: 3.2.2(tailwind-merge@3.5.0)(tailwindcss@4.2.1)
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
     devDependencies:
       '@eslint/compat':
         specifier: ^2.0.2
@@ -2057,6 +2060,9 @@ packages:
   zimmerframe@1.1.4:
     resolution: {integrity: sha512-B58NGBEoc8Y9MWWCQGl/gq9xBCe4IiKM0a2x7GZdQKOW5Exr8S1W24J6OgM1njK8xCRGvAJIL/MxXHf6SkmQKQ==}
 
+  zod@4.3.6:
+    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
+
 snapshots:
 
   '@blazediff/core@1.9.1': {}
@@ -3637,3 +3643,5 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   zimmerframe@1.1.4: {}
+
+  zod@4.3.6: {}

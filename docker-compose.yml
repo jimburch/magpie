@@ -16,5 +16,17 @@ services:
       timeout: 5s
       retries: 5
 
+  postgres-test:
+    image: postgres:17-alpine
+    container_name: magpie-postgres-test
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: magpie
+      POSTGRES_PASSWORD: magpie
+      POSTGRES_DB: magpie_test
+    tmpfs:
+      - /var/lib/postgresql/data
+
 volumes:
   magpie-pgdata:
