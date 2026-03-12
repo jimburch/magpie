@@ -1,3 +1,11 @@
+## Project Configuration
+
+- **Language**: TypeScript
+- **Package Manager**: npm
+- **Add-ons**: eslint, prettier, vitest, playwright
+
+---
+
 # CLAUDE.md — Magpie 🐦‍⬛
 
 ## Project Overview
@@ -5,6 +13,7 @@
 Magpie is a GitHub-like platform for developers to share, discover, and clone their AI coding workflows and setups. A "setup" is a first-class entity (like a repo on GitHub) that packages config files, scripts, hooks, skills, commands, documentation, and a manifest into a shareable, installable unit.
 
 The platform has two surfaces:
+
 1. **Web app** — discovery, profiles, social features, setup browsing/creation
 2. **CLI tool (`magpie`)** — clone/install setups to local machines, publish setups, search/star/follow from terminal
 
@@ -149,6 +158,7 @@ magpie/
 ## Auth Flow
 
 ### Web (GitHub OAuth)
+
 1. User clicks "Sign in with GitHub" → redirected to GitHub
 2. GitHub redirects back to `/auth/callback/github` with code
 3. Server exchanges code for access token via Arctic
@@ -156,6 +166,7 @@ magpie/
 5. `hooks.server.ts` validates session on every request, populates `event.locals.user`
 
 ### CLI (GitHub Device Flow)
+
 1. User runs `magpie login`
 2. CLI requests device code from `/api/v1/auth/device`
 3. User visits GitHub URL, enters code
@@ -182,34 +193,37 @@ magpie/
 ## Important Patterns
 
 ### Loading setup data (SSR page)
+
 ```typescript
 // src/routes/(public)/[username]/[slug]/+page.server.ts
 export const load: PageServerLoad = async ({ params }) => {
-  const setup = await getSetupBySlug(params.username, params.slug);
-  if (!setup) throw error(404);
-  const files = await getSetupFiles(setup.id);
-  const comments = await getSetupComments(setup.id);
-  return { setup, files, comments };
+	const setup = await getSetupBySlug(params.username, params.slug);
+	if (!setup) throw error(404);
+	const files = await getSetupFiles(setup.id);
+	const comments = await getSetupComments(setup.id);
+	return { setup, files, comments };
 };
 ```
 
 ### API route serving CLI
+
 ```typescript
 // src/routes/api/v1/setups/[id]/files/+server.ts
 export const GET: RequestHandler = async ({ params, locals }) => {
-  const files = await getSetupFiles(params.id);
-  return json({ data: files });
+	const files = await getSetupFiles(params.id);
+	return json({ data: files });
 };
 ```
 
 ### Form action for web mutations
+
 ```typescript
 // src/routes/(public)/[username]/[slug]/+page.server.ts
 export const actions = {
-  star: async ({ locals, params }) => {
-    if (!locals.user) throw redirect(302, '/auth/login/github');
-    await toggleStar(locals.user.id, params.setupId);
-  }
+	star: async ({ locals, params }) => {
+		if (!locals.user) throw redirect(302, '/auth/login/github');
+		await toggleStar(locals.user.id, params.setupId);
+	}
 };
 ```
 
@@ -223,3 +237,42 @@ export const actions = {
 - Don't add WebSocket support yet — polling or SvelteKit invalidation is fine for MVP
 - Don't create separate API and frontend projects — SvelteKit handles both
 - Don't implement email/password auth — GitHub OAuth only for MVP
+
+## Claude Code's First 10 Steps
+
+Project Summary
+
+Magpie is a GitHub-like platform for sharing, discovering, and cloning AI coding workflows
+(Claude Code, Cursor, Copilot setups, etc.). It has two surfaces: a SvelteKit web app for
+browsing/profiles/social features, and a CLI tool (magpie) for cloning/publishing setups to
+local machines. The core value loop is: publish a setup via CLI or web, others discover it
+via search/trending, then install it with magpie clone which writes config files to the
+right locations.
+
+First 10 Steps: Empty Repo to Health Check
+
+1. Initialize SvelteKit project — npx sv create with TypeScript, install dependencies,
+   verify npm run dev works
+2. Install and configure Tailwind CSS — add Tailwind via the SvelteKit integration, set up
+   app.css with base/components/utilities directives
+3. Install shadcn-svelte — initialize shadcn-svelte with the default theme, verify a test
+   component renders
+4. Install and configure Drizzle ORM — add drizzle-orm and drizzle-kit, create
+   drizzle.config.ts pointing to a local PostgreSQL database, create
+   src/lib/server/db/index.ts with the Drizzle client
+5. Create the database schema — write src/lib/server/db/schema.ts with all tables (users,
+   sessions, setups, setup_files, stars, follows, comments, activities) using Drizzle's
+   pgTable definitions
+6. Generate and run the initial migration — npx drizzle-kit generate then npx drizzle-kit
+   migrate to create all tables in PostgreSQL
+7. Add shared types and Zod validation schemas — create src/lib/types/index.ts with
+   TypeScript types derived from the schema via $inferSelect/$inferInsert, and a basic Zod
+   schema for API error/success responses
+8. Build the health check API endpoint — create src/routes/api/v1/health/+server.ts that
+   returns { data: { status: "ok", timestamp: ... } } and verifies the DB connection with a
+   simple query
+9. Add the consistent API response helpers — create a small utility in src/lib/server/ for
+   the standard { data: T } / { error, code } JSON response format, use it in the health
+   endpoint
+10. Verify the full stack works — run npm run dev, hit localhost:5173/api/v1/health in a
+    browser, confirm it returns the JSON response with a successful DB check

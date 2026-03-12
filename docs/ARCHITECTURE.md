@@ -57,6 +57,7 @@ Magpie is a monolithic SvelteKit application backed by PostgreSQL, with a separa
 ## Request Flows
 
 ### Web: Viewing a Setup Page (SSR)
+
 1. Browser requests `GET /alice/my-claude-workflow`
 2. Caddy proxies to SvelteKit Node server
 3. SvelteKit matches `(public)/[username]/[slug]/+page.server.ts`
@@ -66,6 +67,7 @@ Magpie is a monolithic SvelteKit application backed by PostgreSQL, with a separa
 7. SvelteKit hydrates on the client for interactivity
 
 ### Web: Starring a Setup (Form Action)
+
 1. User clicks Star button → `<form method="POST" action="?/star">`
 2. SvelteKit matches the `star` form action in `+page.server.ts`
 3. Action validates session via `locals.user`, toggles star in DB
@@ -73,6 +75,7 @@ Magpie is a monolithic SvelteKit application backed by PostgreSQL, with a separa
 5. Page updates without full reload (progressive enhancement)
 
 ### CLI: Cloning a Setup
+
 1. User runs `magpie clone alice/my-claude-workflow`
 2. CLI reads auth token from `~/.magpie/config.json`
 3. CLI sends `GET /api/v1/setups/alice/my-claude-workflow` with Bearer token
@@ -85,6 +88,7 @@ Magpie is a monolithic SvelteKit application backed by PostgreSQL, with a separa
 10. CLI sends `POST /api/v1/setups/{id}/clone` to increment clone counter
 
 ### CLI: Publishing a Setup
+
 1. User creates a `setup.json` manifest in their project directory
 2. User runs `magpie publish`
 3. CLI reads and validates `setup.json`
@@ -96,12 +100,14 @@ Magpie is a monolithic SvelteKit application backed by PostgreSQL, with a separa
 ## Authentication Architecture
 
 ### Web Sessions (Lucia)
+
 - HTTP-only session cookie set on login
 - `hooks.server.ts` validates cookie on every request
 - Session data available via `event.locals.user` in all server-side code
 - Sessions stored in PostgreSQL `sessions` table managed by Lucia
 
 ### CLI Tokens (GitHub Device Flow)
+
 - CLI initiates GitHub device flow via platform's `/api/v1/auth/device` endpoint
 - User authorizes on GitHub in their browser
 - CLI receives GitHub access token, exchanges it for a platform session token
@@ -114,6 +120,7 @@ Magpie is a monolithic SvelteKit application backed by PostgreSQL, with a separa
 All API routes live under `/api/v1/` and return consistent JSON.
 
 ### Response Format
+
 ```typescript
 // Success
 { data: T }

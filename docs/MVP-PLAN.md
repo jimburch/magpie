@@ -13,6 +13,7 @@
 **Goal:** Project scaffold, database, auth, basic CRUD
 
 ### Tasks
+
 - [ ] Initialize SvelteKit project with TypeScript
 - [ ] Set up Tailwind CSS + shadcn-svelte
 - [ ] Configure Drizzle ORM + PostgreSQL connection
@@ -39,6 +40,7 @@
 **Goal:** Setup pages look great, file browsing works, you can explore
 
 ### Tasks
+
 - [ ] Setup detail page (`(public)/[username]/[slug]/+page.svelte`):
   - README rendered as markdown (mdsvex + shiki)
   - Metadata sidebar: tools, tags, star count, clone count, author
@@ -74,6 +76,7 @@
 **Goal:** Stars, follows, comments work. CLI can authenticate and search.
 
 ### Tasks
+
 - [ ] Star system:
   - StarButton component (optimistic UI)
   - Form action in setup detail page
@@ -112,6 +115,7 @@
 **Goal:** The flagship features — clone a setup from CLI, publish a setup from CLI
 
 ### Tasks
+
 - [ ] `magpie clone <owner>/<slug>`:
   - Fetch setup + files from API
   - Resolve target paths (expand `~`, `./`)
@@ -143,6 +147,7 @@
 **Goal:** Make it feel finished. Activity feed, better profiles, edge cases.
 
 ### Tasks
+
 - [ ] Activity feed (`(app)/feed/+page.svelte`):
   - Show recent activity from followed users (new setups, updates)
   - Simple chronological list for MVP
@@ -173,6 +178,7 @@
 **Goal:** Ship it
 
 ### Tasks
+
 - [ ] Set up DigitalOcean Droplet
 - [ ] Install PostgreSQL, Caddy, PM2, Node.js
 - [ ] Configure Caddy for HTTPS + reverse proxy

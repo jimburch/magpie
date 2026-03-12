@@ -26,6 +26,7 @@ $ magpie login
 ```
 
 **Flow:**
+
 1. CLI sends `POST /api/v1/auth/device` to get a device code + verification URL
 2. Opens browser to GitHub verification URL (or prints it if browser can't open)
 3. Polls `POST /api/v1/auth/device/poll` until authorized
@@ -61,6 +62,7 @@ $ magpie search "claude mcp typescript"
 ```
 
 **Options:**
+
 - `--tool <n>` — filter by tool (e.g. `--tool claude-code`)
 - `--tag <n>` — filter by tag (e.g. `--tag typescript`)
 - `--sort <field>` — sort by `stars`, `clones`, `recent` (default: relevance)
@@ -139,6 +141,7 @@ $ magpie clone alice/mcp-power-setup
 ```
 
 **Options:**
+
 - `--dry-run` — preview what would be written without writing anything
 - `--force` — overwrite all conflicts without prompting
 - `--pick` — interactive file picker (checkboxes to select which files to install)
@@ -146,6 +149,7 @@ $ magpie clone alice/mcp-power-setup
 - `--project-dir <path>` — set the project directory for project-scoped files (default: cwd)
 
 **Clone Flow (detailed):**
+
 1. Fetch setup metadata from `GET /api/v1/setups/:owner/:slug`
 2. Fetch files from `GET /api/v1/setups/:id/files`
 3. Resolve target paths:
@@ -192,6 +196,7 @@ $ magpie init
 ```
 
 **Auto-detection:** The CLI scans common paths for AI config files:
+
 - `.claude/settings.json`, `.claude/mcp.json`, `CLAUDE.md`
 - `.cursor/rules`, `.cursorrules`
 - `AGENTS.md`, `.github/copilot-instructions.md`
@@ -213,6 +218,7 @@ $ magpie publish
 ```
 
 **For updates:**
+
 ```
 $ magpie publish --update
 
@@ -253,66 +259,64 @@ Every setup has a `setup.json` at its root. This is the platform's core standard
 
 ```json
 {
-  "$schema": "https://magpie.sh/schema/setup.v1.json",
-  "name": "my-fullstack-workflow",
-  "version": "1.2.0",
-  "description": "My Claude Code + Cursor setup for TypeScript fullstack dev",
-  "tools": ["claude-code", "cursor"],
-  "tags": ["typescript", "nextjs", "mcp", "fullstack"],
-  "files": [
-    {
-      "source": "claude/settings.json",
-      "target": "~/.claude/settings.json",
-      "placement": "global",
-      "description": "Global Claude Code settings with broad permissions"
-    },
-    {
-      "source": "claude/CLAUDE.md",
-      "target": "./CLAUDE.md",
-      "placement": "project",
-      "description": "Project-level instructions — drop in any repo root"
-    },
-    {
-      "source": "mcp/mcp.json",
-      "target": "~/.claude/mcp.json",
-      "placement": "global",
-      "description": "MCP server configs (GitHub, Postgres, filesystem)"
-    },
-    {
-      "source": "scripts/statusline.sh",
-      "target": "~/.claude/statusline.sh",
-      "placement": "global",
-      "description": "Custom statusline showing repo name + context usage"
-    }
-  ],
-  "postInstall": [
-    "chmod +x ~/.claude/statusline.sh"
-  ],
-  "readme": "README.md"
+	"$schema": "https://magpie.sh/schema/setup.v1.json",
+	"name": "my-fullstack-workflow",
+	"version": "1.2.0",
+	"description": "My Claude Code + Cursor setup for TypeScript fullstack dev",
+	"tools": ["claude-code", "cursor"],
+	"tags": ["typescript", "nextjs", "mcp", "fullstack"],
+	"files": [
+		{
+			"source": "claude/settings.json",
+			"target": "~/.claude/settings.json",
+			"placement": "global",
+			"description": "Global Claude Code settings with broad permissions"
+		},
+		{
+			"source": "claude/CLAUDE.md",
+			"target": "./CLAUDE.md",
+			"placement": "project",
+			"description": "Project-level instructions — drop in any repo root"
+		},
+		{
+			"source": "mcp/mcp.json",
+			"target": "~/.claude/mcp.json",
+			"placement": "global",
+			"description": "MCP server configs (GitHub, Postgres, filesystem)"
+		},
+		{
+			"source": "scripts/statusline.sh",
+			"target": "~/.claude/statusline.sh",
+			"placement": "global",
+			"description": "Custom statusline showing repo name + context usage"
+		}
+	],
+	"postInstall": ["chmod +x ~/.claude/statusline.sh"],
+	"readme": "README.md"
 }
 ```
 
 ### Manifest Fields
 
-| Field         | Required | Type       | Description |
-|---------------|----------|------------|-------------|
-| `name`        | Yes      | string     | URL-safe slug (lowercase, hyphens, 3-50 chars) |
-| `version`     | Yes      | string     | Semver (e.g. "1.0.0") |
-| `description` | Yes      | string     | Short description, max 300 chars |
-| `tools`       | Yes      | string[]   | Tool identifiers (see known tools list) |
-| `tags`        | No       | string[]   | Freeform tags, max 10, each max 30 chars |
-| `files`       | Yes      | FileEntry[] | At least 1 file |
-| `postInstall` | No       | string[]   | Shell commands to run after file installation |
-| `readme`      | No       | string     | Path to README.md relative to setup root |
+| Field         | Required | Type        | Description                                    |
+| ------------- | -------- | ----------- | ---------------------------------------------- |
+| `name`        | Yes      | string      | URL-safe slug (lowercase, hyphens, 3-50 chars) |
+| `version`     | Yes      | string      | Semver (e.g. "1.0.0")                          |
+| `description` | Yes      | string      | Short description, max 300 chars               |
+| `tools`       | Yes      | string[]    | Tool identifiers (see known tools list)        |
+| `tags`        | No       | string[]    | Freeform tags, max 10, each max 30 chars       |
+| `files`       | Yes      | FileEntry[] | At least 1 file                                |
+| `postInstall` | No       | string[]    | Shell commands to run after file installation  |
+| `readme`      | No       | string      | Path to README.md relative to setup root       |
 
 ### FileEntry Fields
 
-| Field         | Required | Type   | Description |
-|---------------|----------|--------|-------------|
-| `source`      | Yes      | string | Path to file relative to setup root |
+| Field         | Required | Type   | Description                                                   |
+| ------------- | -------- | ------ | ------------------------------------------------------------- |
+| `source`      | Yes      | string | Path to file relative to setup root                           |
 | `target`      | Yes      | string | Where to install the file. `~` = home dir, `./` = project dir |
-| `placement`   | Yes      | string | `"global"`, `"project"`, or `"relative"` |
-| `description` | No       | string | What this file does |
+| `placement`   | Yes      | string | `"global"`, `"project"`, or `"relative"`                      |
+| `description` | No       | string | What this file does                                           |
 
 ### Known Tool Identifiers
 
@@ -331,9 +335,9 @@ CLI config stored at `~/.magpie/config.json`:
 
 ```json
 {
-  "token": "mg_abc123...",
-  "apiBase": "https://magpie.sh/api/v1",
-  "username": "alice"
+	"token": "mg_abc123...",
+	"apiBase": "https://magpie.sh/api/v1",
+	"username": "alice"
 }
 ```
 
