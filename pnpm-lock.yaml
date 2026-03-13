@@ -94,7 +94,7 @@ importers:
         specifier: ^3.4.1
         version: 3.5.1(prettier@3.8.1)(svelte@5.53.11)
       svelte:
-        specifier: ^5.51.0
+        specifier: ^5.53.11
         version: 5.53.11
       svelte-check:
         specifier: ^4.4.2

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { buttonVariants } from '$lib/components/ui/button/button.svelte';
 	import SearchBar from './SearchBar.svelte';
 	import UserMenu from './UserMenu.svelte';
@@ -15,7 +16,17 @@
 
 		<div>
 			{#if user}
-				<UserMenu {user} />
+				{#if browser}
+					<UserMenu {user} />
+				{:else}
+					<div class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-muted">
+						{#if user.avatarUrl}
+							<img src={user.avatarUrl} alt={user.username} class="h-full w-full object-cover" />
+						{:else}
+							<span class="text-sm font-medium">{user.username[0].toUpperCase()}</span>
+						{/if}
+					</div>
+				{/if}
 			{:else}
 				<a href="/auth/login/github" class={buttonVariants({ variant: 'default', size: 'sm' })}>Sign in</a>
 			{/if}
