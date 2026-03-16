@@ -6,6 +6,7 @@ import { generateState } from 'arctic';
 export const GET: RequestHandler = async ({ cookies }) => {
 	const state = generateState();
 	const url = github.createAuthorizationURL(state, ['read:user', 'user:email']);
+	url.searchParams.set('prompt', 'consent');
 
 	cookies.set('github_oauth_state', state, {
 		httpOnly: true,
