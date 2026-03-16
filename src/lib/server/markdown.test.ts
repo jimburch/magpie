@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderMarkdown } from './markdown';
+import { renderMarkdown, highlightCode } from './markdown';
 
 describe('renderMarkdown', () => {
 	it('renders basic markdown to HTML', async () => {
@@ -55,5 +55,92 @@ describe('renderMarkdown', () => {
 	it('handles empty content', async () => {
 		const html = await renderMarkdown('');
 		expect(html).toBe('');
+	});
+});
+
+describe('highlightCode', () => {
+	it('highlights TypeScript files with shiki', async () => {
+		const html = await highlightCode('const x: number = 1;', 'main.ts');
+		expect(html).toContain('shiki');
+		expect(html).toContain('const');
+	});
+
+	it('highlights JavaScript files', async () => {
+		const html = await highlightCode('function foo() {}', 'app.js');
+		expect(html).toContain('shiki');
+		expect(html).toContain('foo');
+	});
+
+	it('highlights JSON files', async () => {
+		const html = await highlightCode('{"key": "value"}', 'config.json');
+		expect(html).toContain('shiki');
+		expect(html).toContain('key');
+	});
+
+	it('highlights YAML files', async () => {
+		const html = await highlightCode('key: value', 'config.yaml');
+		expect(html).toContain('shiki');
+	});
+
+	it('highlights .yml extension same as .yaml', async () => {
+		const html = await highlightCode('key: value', 'config.yml');
+		expect(html).toContain('shiki');
+	});
+
+	it('highlights shell scripts', async () => {
+		const html = await highlightCode('echo "hello"', 'setup.sh');
+		expect(html).toContain('shiki');
+	});
+
+	it('highlights bash/zsh extensions', async () => {
+		const bashHtml = await highlightCode('echo "hi"', 'run.bash');
+		const zshHtml = await highlightCode('echo "hi"', 'run.zsh');
+		expect(bashHtml).toContain('shiki');
+		expect(zshHtml).toContain('shiki');
+	});
+
+	it('highlights markdown files', async () => {
+		const html = await highlightCode('# Hello', 'readme.md');
+		expect(html).toContain('shiki');
+	});
+
+	it('highlights Python files', async () => {
+		const html = await highlightCode('def foo(): pass', 'script.py');
+		expect(html).toContain('shiki');
+	});
+
+	it('highlights mjs/cjs/mts/cts extensions', async () => {
+		const mjsHtml = await highlightCode('export default 1', 'mod.mjs');
+		const cjsHtml = await highlightCode('module.exports = 1', 'mod.cjs');
+		const mtsHtml = await highlightCode('const x: number = 1', 'mod.mts');
+		const ctsHtml = await highlightCode('const x: number = 1', 'mod.cts');
+		expect(mjsHtml).toContain('shiki');
+		expect(cjsHtml).toContain('shiki');
+		expect(mtsHtml).toContain('shiki');
+		expect(ctsHtml).toContain('shiki');
+	});
+
+	it('falls back to plain <pre><code> for unknown extensions', async () => {
+		const html = await highlightCode('some content', 'data.csv');
+		expect(html).not.toContain('shiki');
+		expect(html).toContain('<pre><code>');
+		expect(html).toContain('some content');
+	});
+
+	it('falls back for files with no extension', async () => {
+		const html = await highlightCode('content here', 'Makefile');
+		expect(html).not.toContain('shiki');
+		expect(html).toContain('<pre><code>');
+	});
+
+	it('escapes HTML in fallback output', async () => {
+		const html = await highlightCode('<script>alert("xss")</script>', 'file.txt');
+		expect(html).not.toContain('<script>');
+		expect(html).toContain('&lt;script&gt;');
+	});
+
+	it('highlights TOML files', async () => {
+		const html = await highlightCode('[section]\nkey = "value"', 'config.toml');
+		expect(html).toContain('shiki');
 	});
 });
