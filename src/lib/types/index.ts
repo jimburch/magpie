@@ -94,7 +94,9 @@ export const createSetupFileSchema = z.object({
 
 export const createSetupWithFilesSchema = createSetupSchema.extend({
 	readmePath: z.string().optional(),
-	files: z.array(createSetupFileSchema).optional()
+	files: z.array(createSetupFileSchema).optional(),
+	toolIds: z.array(z.string().uuid()).optional(),
+	tagIds: z.array(z.string().uuid()).optional()
 });
 
 export const updateSetupSchema = z.object({

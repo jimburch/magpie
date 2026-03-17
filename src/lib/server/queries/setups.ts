@@ -81,6 +81,18 @@ export async function createSetup(userId: string, data: CreateSetupInput) {
 			await tx.insert(setupFiles).values(toSetupFileRows(setup.id, data.files));
 		}
 
+		if (data.toolIds && data.toolIds.length > 0) {
+			await tx
+				.insert(setupTools)
+				.values(data.toolIds.map((toolId) => ({ setupId: setup.id, toolId })));
+		}
+
+		if (data.tagIds && data.tagIds.length > 0) {
+			await tx
+				.insert(setupTags)
+				.values(data.tagIds.map((tagId) => ({ setupId: setup.id, tagId })));
+		}
+
 		await tx
 			.update(users)
 			.set({ setupsCount: sql`${users.setupsCount} + 1` })
