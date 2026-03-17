@@ -23,6 +23,7 @@ function toSetupFileRows(setupId: string, files: NonNullable<FileInput>) {
 		source: f.source,
 		target: f.target,
 		placement: f.placement,
+		componentType: f.componentType,
 		description: f.description,
 		content: f.content
 	}));
@@ -42,6 +43,11 @@ export async function getSetupByOwnerSlug(ownerUsername: string, slug: string) {
 			version: setups.version,
 			description: setups.description,
 			readmePath: setups.readmePath,
+			category: setups.category,
+			license: setups.license,
+			minToolVersion: setups.minToolVersion,
+			postInstall: setups.postInstall,
+			prerequisites: setups.prerequisites,
 			starsCount: setups.starsCount,
 			clonesCount: setups.clonesCount,
 			commentsCount: setups.commentsCount,
@@ -73,7 +79,12 @@ export async function createSetup(userId: string, data: CreateSetupInput) {
 				slug: data.slug,
 				version: data.version,
 				description: data.description,
-				readmePath: data.readmePath
+				readmePath: data.readmePath,
+				category: data.category,
+				license: data.license,
+				minToolVersion: data.minToolVersion,
+				postInstall: data.postInstall,
+				prerequisites: data.prerequisites
 			})
 			.returning();
 
@@ -88,9 +99,7 @@ export async function createSetup(userId: string, data: CreateSetupInput) {
 		}
 
 		if (data.tagIds && data.tagIds.length > 0) {
-			await tx
-				.insert(setupTags)
-				.values(data.tagIds.map((tagId) => ({ setupId: setup.id, tagId })));
+			await tx.insert(setupTags).values(data.tagIds.map((tagId) => ({ setupId: setup.id, tagId })));
 		}
 
 		await tx
@@ -109,7 +118,12 @@ export async function updateSetup(id: string, data: UpdateSetupInput) {
 			...(data.slug !== undefined && { slug: data.slug }),
 			...(data.description !== undefined && { description: data.description }),
 			...(data.version !== undefined && { version: data.version }),
-			...(data.readmePath !== undefined && { readmePath: data.readmePath })
+			...(data.readmePath !== undefined && { readmePath: data.readmePath }),
+			...(data.category !== undefined && { category: data.category }),
+			...(data.license !== undefined && { license: data.license }),
+			...(data.minToolVersion !== undefined && { minToolVersion: data.minToolVersion }),
+			...(data.postInstall !== undefined && { postInstall: data.postInstall }),
+			...(data.prerequisites !== undefined && { prerequisites: data.prerequisites })
 		};
 
 		let setup;

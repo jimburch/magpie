@@ -63,7 +63,7 @@ export type ProfileUser = {
 };
 
 import { z } from 'zod';
-import { placementEnum } from '$lib/server/db/schema';
+import { placementEnum, componentTypeEnum, categoryEnum } from '$lib/server/db/schema';
 
 export const apiSuccessSchema = <T extends z.ZodType>(dataSchema: T) =>
 	z.object({ data: dataSchema });
@@ -88,12 +88,18 @@ export const createSetupFileSchema = z.object({
 	source: z.string().min(1),
 	target: z.string().min(1),
 	placement: z.enum(placementEnum.enumValues),
+	componentType: z.enum(componentTypeEnum.enumValues).default('instruction'),
 	description: z.string().optional(),
 	content: z.string().min(1)
 });
 
 export const createSetupWithFilesSchema = createSetupSchema.extend({
 	readmePath: z.string().optional(),
+	category: z.enum(categoryEnum.enumValues).optional(),
+	license: z.string().max(50).optional(),
+	minToolVersion: z.string().max(20).optional(),
+	postInstall: z.string().optional(),
+	prerequisites: z.array(z.string()).optional(),
 	files: z.array(createSetupFileSchema).optional(),
 	toolIds: z.array(z.string().uuid()).optional(),
 	tagIds: z.array(z.string().uuid()).optional()
@@ -113,6 +119,11 @@ export const updateSetupSchema = z.object({
 		.regex(/^\d+\.\d+\.\d+$/)
 		.optional(),
 	readmePath: z.string().nullable().optional(),
+	category: z.enum(categoryEnum.enumValues).nullable().optional(),
+	license: z.string().max(50).nullable().optional(),
+	minToolVersion: z.string().max(20).nullable().optional(),
+	postInstall: z.string().nullable().optional(),
+	prerequisites: z.array(z.string()).nullable().optional(),
 	files: z.array(createSetupFileSchema).optional()
 });
 
@@ -126,3 +137,22 @@ export const usernameSchema = z
 	.min(2)
 	.max(50)
 	.regex(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+
+export const mcpServerConfigSchema = z.object({
+	command: z.string().min(1),
+	args: z.array(z.string()).optional(),
+	env: z.record(z.string(), z.string()).optional()
+});
+
+export const hookEntrySchema = z.object({
+	type: z.literal('command'),
+	command: z.string().min(1)
+});
+
+export const hookConfigSchema = z.object({
+	matcher: z.string().optional(),
+	hooks: z.array(hookEntrySchema)
+});
+
+export const HOOK_EVENTS = ['PreToolUse', 'PostToolUse', 'Notification', 'Stop'] as const;
+export type HookEvent = (typeof HOOK_EVENTS)[number];

@@ -17,6 +17,23 @@ import {
 
 export const placementEnum = pgEnum('placement', ['global', 'project', 'relative']);
 
+export const componentTypeEnum = pgEnum('component_type', [
+	'instruction',
+	'command',
+	'skill',
+	'mcp_server',
+	'hook'
+]);
+
+export const categoryEnum = pgEnum('category', [
+	'web-dev',
+	'mobile',
+	'data-science',
+	'devops',
+	'systems',
+	'general'
+]);
+
 export const actionTypeEnum = pgEnum('action_type', [
 	'created_setup',
 	'starred_setup',
@@ -80,6 +97,11 @@ export const setups = pgTable(
 		version: varchar('version', { length: 20 }).default('0.1.0').notNull(),
 		description: varchar('description', { length: 300 }).notNull(),
 		readmePath: text('readme_path'),
+		category: categoryEnum('category'),
+		license: varchar('license', { length: 50 }),
+		minToolVersion: varchar('min_tool_version', { length: 20 }),
+		postInstall: text('post_install'),
+		prerequisites: text('prerequisites').array(),
 		starsCount: integer('stars_count').default(0).notNull(),
 		clonesCount: integer('clones_count').default(0).notNull(),
 		commentsCount: integer('comments_count').default(0).notNull(),
@@ -135,6 +157,7 @@ export const setupFiles = pgTable(
 		source: text('source').notNull(),
 		target: text('target').notNull(),
 		placement: placementEnum('placement').notNull(),
+		componentType: componentTypeEnum('component_type').notNull().default('instruction'),
 		description: text('description'),
 		content: text('content').notNull(),
 		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()

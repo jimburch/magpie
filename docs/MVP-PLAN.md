@@ -65,7 +65,7 @@
   - Hero: tagline + CTA
   - Trending setups grid
   - "How it works" section (share → discover → clone)
-- [ ] Setup creation page (`(app)/new/+page.svelte`):
+- [x] Setup creation page (`(app)/new/+page.svelte`):
   - Form: name, description, tools, tags
   - README editor (textarea with markdown preview)
   - File manager: add files, set path + target_path + placement + description
