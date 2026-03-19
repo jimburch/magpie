@@ -238,7 +238,7 @@ export const actions = {
 - Don't add WebSocket support yet — polling or SvelteKit invalidation is fine for MVP
 - Don't create separate API and frontend projects — SvelteKit handles both
 - Don't implement email/password auth — GitHub OAuth only for MVP
-- Don't use git to add, commit, or push code - only the user will do that
+- Don't use git to add, commit, or push code - only the user will do that. **Exception:** Ralph worker agents running in CI (`scripts/worker-run.sh`) may commit and push to `claude/*` branches.
 
 ## UI Testing Workflow
 

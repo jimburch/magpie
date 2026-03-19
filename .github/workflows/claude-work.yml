@@ -1,0 +1,81 @@
+name: Claude Worker
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        description: 'Branch name for the worker (e.g. claude/fix-auth-1234567890)'
+        required: true
+        type: string
+      issue_numbers:
+        description: 'JSON array of issue numbers (e.g. [42])'
+        required: true
+        type: string
+      prompt:
+        description: 'Task prompt for the worker'
+        required: true
+        type: string
+
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Configure git
+        run: |
+          git config user.name "Ralph (Claude)"
+          git config user.email "ralph-claude@users.noreply.github.com"
+
+      - name: Run worker
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x scripts/worker-run.sh
+          ./scripts/worker-run.sh \
+            "${{ inputs.branch_name }}" \
+            '${{ inputs.issue_numbers }}' \
+            "${{ inputs.prompt }}"
+
+      - name: Push branch
+        run: git push origin "${{ inputs.branch_name }}"
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_TITLE=$(cat /tmp/pr_title.txt)
+          PR_BODY=$(cat /tmp/pr_description.txt)
+
+          gh pr create \
+            --title "$PR_TITLE" \
+            --body "$PR_BODY" \
+            --base main \
+            --head "${{ inputs.branch_name }}"
