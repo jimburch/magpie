@@ -6,36 +6,31 @@
 		isStarred: boolean;
 		starsCount: number;
 		formAction?: string;
+		onOptimistic?: (starred: boolean, count: number) => void;
+		onRevert?: () => void;
 	}
 
-	const { isStarred, starsCount, formAction = '?/star' }: Props = $props();
-
-	let pending = $state<{ starred: boolean; count: number } | null>(null);
-
-	const displayStarred = $derived(pending !== null ? pending.starred : isStarred);
-	const displayCount = $derived(pending !== null ? pending.count : starsCount);
+	const { isStarred, starsCount, formAction = '?/star', onOptimistic, onRevert }: Props = $props();
 </script>
 
 <form
 	method="POST"
 	action={formAction}
 	use:enhance={() => {
-		pending = {
-			starred: !isStarred,
-			count: isStarred ? starsCount - 1 : starsCount + 1
-		};
+		onOptimistic?.(!isStarred, isStarred ? starsCount - 1 : starsCount + 1);
 
-		return async ({ result }) => {
+		return async ({ result, update }) => {
 			if (result.type === 'failure' || result.type === 'error') {
-				pending = null;
+				onRevert?.();
 			} else {
-				pending = null;
+				await update({ reset: false });
+				onRevert?.();
 			}
 		};
 	}}
 >
 	<Button type="submit" variant="outline" class="w-full gap-2">
-		{#if displayStarred}
+		{#if isStarred}
 			<svg class="size-4 fill-yellow-500 text-yellow-500" viewBox="0 0 16 16">
 				<path
 					d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z"
@@ -50,6 +45,6 @@
 			</svg>
 			Star
 		{/if}
-		<span class="text-muted-foreground">{displayCount}</span>
+		<span class="text-muted-foreground">{starsCount}</span>
 	</Button>
 </form>

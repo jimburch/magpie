@@ -9,6 +9,22 @@
 	let copied = $state(false);
 	const cloneCommand = $derived(`magpie clone ${data.setup.ownerUsername}/${data.setup.slug}`);
 
+	let optimisticIsStarred = $state<boolean | null>(null);
+	let optimisticStarsCount = $state<number | null>(null);
+
+	const displayIsStarred = $derived(optimisticIsStarred ?? data.isStarred);
+	const displayStarsCount = $derived(optimisticStarsCount ?? data.setup.starsCount);
+
+	function handleOptimistic(starred: boolean, count: number) {
+		optimisticIsStarred = starred;
+		optimisticStarsCount = count;
+	}
+
+	function handleRevert() {
+		optimisticIsStarred = null;
+		optimisticStarsCount = null;
+	}
+
 	function copyCloneCommand() {
 		navigator.clipboard.writeText(cloneCommand);
 		copied = true;
@@ -71,7 +87,12 @@
 
 				<!-- Star button -->
 				<div>
-					<StarButton isStarred={data.isStarred} starsCount={data.setup.starsCount} />
+					<StarButton
+						isStarred={displayIsStarred}
+						starsCount={displayStarsCount}
+						onOptimistic={handleOptimistic}
+						onRevert={handleRevert}
+					/>
 				</div>
 
 				<!-- Stats -->
@@ -80,7 +101,7 @@
 					<div class="space-y-1 text-sm">
 						<div class="flex items-center justify-between">
 							<span class="text-muted-foreground">Stars</span>
-							<span>{data.setup.starsCount}</span>
+							<span>{displayStarsCount}</span>
 						</div>
 						<div class="flex items-center justify-between">
 							<span class="text-muted-foreground">Clones</span>
