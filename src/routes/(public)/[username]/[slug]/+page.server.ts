@@ -8,7 +8,13 @@ import {
 	isSetupStarredByUser,
 	toggleStar
 } from '$lib/server/queries/setups';
-import { getSetupComments, createComment, InvalidParentError } from '$lib/server/queries/comments';
+import {
+	getSetupComments,
+	createComment,
+	deleteComment,
+	InvalidParentError,
+	ForbiddenError
+} from '$lib/server/queries/comments';
 import { renderMarkdown } from '$lib/server/markdown';
 import { createCommentSchema } from '$lib/types';
 
@@ -80,6 +86,27 @@ export const actions: Actions = {
 		} catch (e) {
 			if (e instanceof InvalidParentError) {
 				return fail(400, { error: 'Cannot reply to a reply', code: 'INVALID_PARENT' });
+			}
+			throw e;
+		}
+
+		return { success: true };
+	},
+
+	deleteComment: async ({ locals, request }) => {
+		if (!locals.user) throw redirect(302, '/auth/login/github');
+
+		const formData = await request.formData();
+		const commentId = formData.get('commentId');
+		if (typeof commentId !== 'string' || !commentId) {
+			return fail(400, { error: 'Missing commentId', code: 'BAD_REQUEST' });
+		}
+
+		try {
+			await deleteComment(commentId, locals.user.id);
+		} catch (e) {
+			if (e instanceof ForbiddenError) {
+				return fail(403, { error: e.message, code: 'FORBIDDEN' });
 			}
 			throw e;
 		}

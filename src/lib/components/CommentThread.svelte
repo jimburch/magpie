@@ -15,9 +15,10 @@
 	interface Props {
 		comments: CommentWithAuthor[];
 		isLoggedIn: boolean;
+		currentUsername: string | null;
 	}
 
-	const { comments, isLoggedIn }: Props = $props();
+	const { comments, isLoggedIn, currentUsername }: Props = $props();
 
 	const topLevel = $derived(comments.filter((c) => c.parentId === null));
 
@@ -36,6 +37,12 @@
 
 	function toggleReply(commentId: string) {
 		activeReplyId = activeReplyId === commentId ? null : commentId;
+	}
+
+	function confirmDelete(event: Event) {
+		if (!confirm('Are you sure you want to delete this comment? This cannot be undone.')) {
+			event.preventDefault();
+		}
 	}
 </script>
 
@@ -102,15 +109,39 @@
 								<span class="text-xs text-muted-foreground">{timeAgo(comment.createdAt)}</span>
 							</div>
 							<p class="mt-1 text-sm">{comment.body}</p>
-							{#if isLoggedIn}
-								<button
-									type="button"
-									onclick={() => toggleReply(comment.id)}
-									class="mt-1 text-xs text-muted-foreground hover:text-foreground"
-								>
-									{activeReplyId === comment.id ? 'Cancel' : 'Reply'}
-								</button>
-							{/if}
+							<div class="mt-1 flex items-center gap-3">
+								{#if isLoggedIn}
+									<button
+										type="button"
+										onclick={() => toggleReply(comment.id)}
+										class="text-xs text-muted-foreground hover:text-foreground"
+									>
+										{activeReplyId === comment.id ? 'Cancel' : 'Reply'}
+									</button>
+								{/if}
+								{#if currentUsername === comment.authorUsername}
+									<form
+										method="POST"
+										action="?/deleteComment"
+										use:enhance={() => {
+											return async ({ result, update }) => {
+												if (result.type !== 'failure' && result.type !== 'error') {
+													await update({ reset: true });
+												}
+											};
+										}}
+									>
+										<input type="hidden" name="commentId" value={comment.id} />
+										<button
+											type="submit"
+											onclick={confirmDelete}
+											class="text-xs text-muted-foreground hover:text-destructive"
+										>
+											Delete
+										</button>
+									</form>
+								{/if}
+							</div>
 						</div>
 					</div>
 
@@ -175,6 +206,28 @@
 											<span class="text-xs text-muted-foreground">{timeAgo(reply.createdAt)}</span>
 										</div>
 										<p class="mt-1 text-sm">{reply.body}</p>
+										{#if currentUsername === reply.authorUsername}
+											<form
+												method="POST"
+												action="?/deleteComment"
+												use:enhance={() => {
+													return async ({ result, update }) => {
+														if (result.type !== 'failure' && result.type !== 'error') {
+															await update({ reset: true });
+														}
+													};
+												}}
+											>
+												<input type="hidden" name="commentId" value={reply.id} />
+												<button
+													type="submit"
+													onclick={confirmDelete}
+													class="mt-1 text-xs text-muted-foreground hover:text-destructive"
+												>
+													Delete
+												</button>
+											</form>
+										{/if}
 									</div>
 								</div>
 							{/each}

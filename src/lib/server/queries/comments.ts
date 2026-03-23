@@ -18,6 +18,13 @@ export class InvalidParentError extends Error {
 	}
 }
 
+export class ForbiddenError extends Error {
+	code = 'FORBIDDEN';
+	constructor() {
+		super('You do not have permission to delete this comment');
+	}
+}
+
 export async function getSetupComments(setupId: string): Promise<CommentWithAuthor[]> {
 	return db
 		.select({
@@ -32,6 +39,52 @@ export async function getSetupComments(setupId: string): Promise<CommentWithAuth
 		.innerJoin(users, eq(comments.userId, users.id))
 		.where(eq(comments.setupId, setupId))
 		.orderBy(comments.createdAt);
+}
+
+export async function deleteComment(commentId: string, userId: string): Promise<void> {
+	await db.transaction(async (tx) => {
+		const [comment] = await tx
+			.select({
+				id: comments.id,
+				userId: comments.userId,
+				setupId: comments.setupId,
+				parentId: comments.parentId
+			})
+			.from(comments)
+			.where(eq(comments.id, commentId))
+			.limit(1);
+
+		if (!comment) {
+			throw new ForbiddenError();
+		}
+		if (comment.userId !== userId) {
+			throw new ForbiddenError();
+		}
+
+		// Count replies if this is a top-level comment
+		let totalDeleted = 1;
+		if (comment.parentId === null) {
+			const replies = await tx
+				.select({ id: comments.id })
+				.from(comments)
+				.where(eq(comments.parentId, commentId));
+
+			// Delete replies first
+			if (replies.length > 0) {
+				await tx.delete(comments).where(eq(comments.parentId, commentId));
+				totalDeleted += replies.length;
+			}
+		}
+
+		// Delete the comment itself
+		await tx.delete(comments).where(eq(comments.id, commentId));
+
+		// Decrement commentsCount by total deleted rows
+		await tx
+			.update(setups)
+			.set({ commentsCount: sql`${setups.commentsCount} - ${totalDeleted}` })
+			.where(eq(setups.id, comment.setupId));
+	});
 }
 
 export async function createComment(

@@ -192,5 +192,9 @@
 	<Separator class="my-8" />
 
 	<!-- Comments -->
-	<CommentThread comments={data.comments} isLoggedIn={!!data.user} />
+	<CommentThread
+		comments={data.comments}
+		isLoggedIn={!!data.user}
+		currentUsername={data.user?.username ?? null}
+	/>
 </div>
