@@ -37,6 +37,35 @@ while [ "$INDEX" -lt "$TASK_COUNT" ]; do
   echo "=========================================="
   echo ""
 
+  # --- Check if issue is still open (may have been closed externally) ---
+
+  ISSUE_STATE=$(gh issue view "$ISSUE_NUM" --json state -q '.state')
+  if [ "$ISSUE_STATE" != "OPEN" ]; then
+    echo "Issue #$ISSUE_NUM is already closed. Skipping."
+    echo ""
+    INDEX=$((INDEX + 1))
+    continue
+  fi
+
+  # --- Check blockers are resolved ---
+
+  ISSUE_BODY=$(gh issue view "$ISSUE_NUM" --json body -q '.body')
+  BLOCKED=false
+  for blocker in $(echo "$ISSUE_BODY" | grep -oP '(?<=Blocked by #)\d+' || true); do
+    BLOCKER_STATE=$(gh issue view "$blocker" --json state -q '.state' 2>/dev/null || echo "UNKNOWN")
+    if [ "$BLOCKER_STATE" = "OPEN" ]; then
+      echo "Issue #$ISSUE_NUM is blocked by open issue #$blocker. Skipping."
+      BLOCKED=true
+      break
+    fi
+  done
+
+  if [ "$BLOCKED" = true ]; then
+    echo ""
+    INDEX=$((INDEX + 1))
+    continue
+  fi
+
   # --- Fetch issue context ---
 
   echo "Fetching issue #$ISSUE_NUM context..."

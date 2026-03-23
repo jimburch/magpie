@@ -13,16 +13,14 @@ You are given a JSON array of open GitHub issues with their number, title, body,
    - **HITL**: Requires human-in-the-loop (architectural decisions, design reviews, etc.). Look for "HITL" in the issue body or labels.
    - **Infer**: If neither AFK nor HITL is mentioned, infer from context. Clear bug fixes, straightforward implementations = AFK. Ambiguous requirements, design decisions needed = HITL.
 
-2. **Build a dependency graph** from the "Blocked by" sections in issue bodies. An issue is only actionable if ALL its blockers are closed (i.e., not in the open issues list).
+2. **Build a dependency graph** from the "Blocked by" sections in issue bodies.
 
-3. **Order actionable tasks** by:
-   - Dependencies first (issues that unblock other issues go first)
-   - Then by priority label: `priority:high` > `priority:medium` > `priority:low`
-   - Within the same priority, prefer smaller/more focused issues
+3. **Topologically sort ALL AFK issues** respecting the dependency graph — blockers come before the tasks they block. Within the same dependency tier, order by:
+   - Priority label: `priority:high` > `priority:medium` > `priority:low`
+   - Issues that unblock the most other issues first
+   - Smaller, more focused issues over large ones
 
-4. **Select actionable tasks**: Only issues that are:
-   - AFK (or inferred AFK)
-   - Not blocked by any open issue
+4. **Include ALL AFK issues in the output**, even those currently blocked by other open issues. The worker processes tasks sequentially — by the time it reaches a blocked task, the blocker will already have been completed earlier in the queue.
 
 5. **For each task, write a focused prompt** that tells the worker agent exactly what to do. Include:
    - What to implement/fix
@@ -81,6 +79,6 @@ Within the same priority level, prefer:
 ## Important
 
 - Do NOT include HITL issues.
-- Do NOT include issues that are blocked by other open issues.
-- The output array must be ORDERED — the worker processes them sequentially from first to last.
+- DO include issues that are blocked by other open issues — order them so blockers come first. The worker will complete blockers before reaching dependent tasks.
+- The output array must be TOPOLOGICALLY ORDERED — blockers before dependents, then by priority within each tier.
 - Explore the codebase if needed to understand whether issues would conflict.
