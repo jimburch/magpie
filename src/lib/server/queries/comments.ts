@@ -25,6 +25,13 @@ export class ForbiddenError extends Error {
 	}
 }
 
+export class NotFoundError extends Error {
+	code = 'NOT_FOUND';
+	constructor() {
+		super('Comment not found');
+	}
+}
+
 export async function getSetupComments(setupId: string): Promise<CommentWithAuthor[]> {
 	return db
 		.select({
@@ -55,7 +62,7 @@ export async function deleteComment(commentId: string, userId: string): Promise<
 			.limit(1);
 
 		if (!comment) {
-			throw new ForbiddenError();
+			throw new NotFoundError();
 		}
 		if (comment.userId !== userId) {
 			throw new ForbiddenError();
