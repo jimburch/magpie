@@ -43,7 +43,9 @@ Do NOT commit if any gate fails. Fix the issues first, then re-run the gates.
 
 ### 4. Commit
 
-Make a git commit. The commit message MUST follow this format:
+**Only commit if all quality gates pass.** If gates fail and you cannot fix them, **do not commit**. Instead, explain what's blocking you in your output so the runner can retry with that context.
+
+When gates pass, make a git commit. The commit message MUST follow this format:
 
 ```
 RALPH: <short description> (#<issue-number>)
@@ -72,7 +74,7 @@ Be specific and practical — assume the tester has the app running locally on `
 
 - ONLY WORK ON YOUR ASSIGNED TASK. Do not fix other issues you notice.
 - Do NOT modify CLAUDE.md or any configuration files unless the task specifically requires it.
-- If the task cannot be completed (missing dependencies, unclear requirements), commit what you have and explain the blocker in the commit message.
+- If the task cannot be completed (missing dependencies, unclear requirements), do NOT commit. Explain the blocker in your output — the runner may retry or skip the task.
 - Use `pnpm` as the package manager (never npm).
 - Do NOT push your commits. The runner script handles pushing after you finish. Only commit locally.
 - Skip Playwright screenshots — browser binaries and a database are not available in CI. Visual verification is done during review.

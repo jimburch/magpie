@@ -16,8 +16,10 @@ fi
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 TASK_COUNT=$(echo "$TASKS_JSON" | jq 'length')
 SUMMARY_FILE=$(mktemp)
+MAX_ATTEMPTS=3
+ATTEMPT_TIMEOUT=600  # 10 minutes per attempt
 
-echo "Processing $TASK_COUNT tasks sequentially..."
+echo "Processing $TASK_COUNT tasks sequentially (max $MAX_ATTEMPTS attempts each)..."
 echo ""
 
 # --- Fetch recent RALPH commits ---
@@ -71,8 +73,9 @@ while [ "$INDEX" -lt "$TASK_COUNT" ]; do
 
   echo "Fetching issue #$ISSUE_NUM context..."
   ISSUE_JSON=$(gh issue view "$ISSUE_NUM" --json number,title,body,labels,comments)
+  ISSUE_TITLE=$(echo "$ISSUE_JSON" | jq -r '.title')
 
-  # --- Build prompt ---
+  # --- Build initial prompt ---
 
   WORKER_PROMPT=$(cat "$SCRIPT_DIR/worker-prompt.md")
 
@@ -90,69 +93,197 @@ ${RALPH_COMMITS}
 
 ${WORKER_PROMPT}"
 
-  # --- Run Claude Code ---
+  # --- Retry loop ---
 
-  echo "Running Claude Code worker for issue #$ISSUE_NUM..."
-  echo ""
+  LAST_COMMIT_BEFORE=$(git rev-parse HEAD 2>/dev/null || echo "none")
+  TASK_SUCCEEDED=false
+  GATE_OUTPUT=""
 
-  tmpfile=$(mktemp)
-  trap "rm -f $tmpfile" EXIT
-
-  stream_text='select(.type == "assistant").message.content[]? | select(.type == "text").text // empty | gsub("\n"; "\r\n") | . + "\r\n\n"'
-  final_result='select(.type == "result").result // empty'
-
-  echo "$FULL_PROMPT" | claude -p \
-    --dangerously-skip-permissions \
-    --output-format stream-json \
-    --verbose \
-  | grep --line-buffered '^{' \
-  | tee "$tmpfile" \
-  | jq --unbuffered -rj "$stream_text"
-
-  echo ""
-  echo "Worker finished issue #$ISSUE_NUM."
-
-  # --- Extract testing instructions ---
-
-  RESULT=$(jq -r "$final_result" "$tmpfile")
-  ISSUE_TITLE=$(echo "$ISSUE_JSON" | jq -r '.title')
-  TEST_INSTRUCTIONS=$(echo "$RESULT" | sed -n '/<test_instructions>/,/<\/test_instructions>/p' | sed '1d;$d')
-
-  {
-    echo "### Issue #$ISSUE_NUM: $ISSUE_TITLE"
+  for ATTEMPT in $(seq 1 $MAX_ATTEMPTS); do
+    echo "------------------------------------------"
+    echo "Attempt $ATTEMPT/$MAX_ATTEMPTS for issue #$ISSUE_NUM"
+    echo "------------------------------------------"
     echo ""
-    if [ -n "$TEST_INSTRUCTIONS" ]; then
-      echo "$TEST_INSTRUCTIONS"
+
+    # --- Build prompt (initial or retry) ---
+
+    if [ "$ATTEMPT" -eq 1 ]; then
+      PROMPT_TO_SEND="$FULL_PROMPT"
     else
-      echo "_No testing instructions provided by worker._"
+      # Build retry prompt with failure context
+      DIFF_CONTEXT=""
+      CURRENT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "none")
+      if [ "$CURRENT_COMMIT" = "$LAST_COMMIT_BEFORE" ]; then
+        # No commit was produced — include uncommitted changes
+        UNCOMMITTED_DIFF=$(git diff 2>/dev/null || echo "")
+        if [ -n "$UNCOMMITTED_DIFF" ]; then
+          DIFF_CONTEXT="Uncommitted changes from your previous attempt:
+$UNCOMMITTED_DIFF"
+        fi
+      fi
+
+      PROMPT_TO_SEND="Your previous attempt for issue #$ISSUE_NUM did not pass quality gates.
+
+Errors:
+$GATE_OUTPUT
+
+${DIFF_CONTEXT}
+
+Fix these issues. Re-run the quality gates (pnpm check && pnpm lint && pnpm test:unit --run). If they pass, commit. If you cannot fix them, do not commit — explain what's blocking you."
     fi
+
+    # --- Run Claude Code ---
+
+    echo "Running Claude Code worker..."
     echo ""
-  } >> "$SUMMARY_FILE"
 
-  # --- Push to ralph branch ---
+    tmpfile=$(mktemp)
 
-  echo "Pushing to ralph branch..."
-  git push origin ralph
+    stream_text='select(.type == "assistant").message.content[]? | select(.type == "text").text // empty | gsub("\n"; "\r\n") | . + "\r\n\n"'
+    final_result='select(.type == "result").result // empty'
 
-  # --- Close the issue ---
+    echo "$PROMPT_TO_SEND" | timeout "${ATTEMPT_TIMEOUT}" claude -p \
+      --dangerously-skip-permissions \
+      --output-format stream-json \
+      --verbose \
+    | grep --line-buffered '^{' \
+    | tee "$tmpfile" \
+    | jq --unbuffered -rj "$stream_text" || {
+      TIMEOUT_EXIT=$?
+      if [ "$TIMEOUT_EXIT" -eq 124 ]; then
+        echo ""
+        echo "Attempt $ATTEMPT timed out after ${ATTEMPT_TIMEOUT}s."
+      else
+        echo ""
+        echo "Attempt $ATTEMPT exited with code $TIMEOUT_EXIT."
+      fi
+    }
 
-  echo "Closing issue #$ISSUE_NUM..."
-  gh issue close "$ISSUE_NUM" --comment "Completed by Ralph. Committed to \`ralph\` branch, will be merged into \`develop\`."
-  gh issue edit "$ISSUE_NUM" --remove-label "ralph" 2>/dev/null || true
+    echo ""
+    echo "Claude finished attempt $ATTEMPT for issue #$ISSUE_NUM."
 
-  # --- Update RALPH commits for next iteration ---
+    # --- Check if Claude committed ---
 
-  RALPH_COMMITS=$(git log --grep="RALPH" -n 10 --format="%H%n%ad%n%B---" --date=short 2>/dev/null || echo "No RALPH commits found")
+    CURRENT_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "none")
+
+    if [ "$CURRENT_COMMIT" != "$LAST_COMMIT_BEFORE" ]; then
+      echo "New commit detected. Running external quality gates..."
+
+      # --- Run quality gates externally ---
+
+      GATE_OUTPUT_FILE=$(mktemp)
+      if pnpm check 2>&1 | tee "$GATE_OUTPUT_FILE" && \
+         pnpm lint 2>&1 | tee -a "$GATE_OUTPUT_FILE" && \
+         pnpm test:unit --run 2>&1 | tee -a "$GATE_OUTPUT_FILE"; then
+        echo ""
+        echo "Quality gates PASSED on attempt $ATTEMPT."
+        TASK_SUCCEEDED=true
+        LAST_COMMIT_BEFORE="$CURRENT_COMMIT"
+        rm -f "$GATE_OUTPUT_FILE"
+        break
+      else
+        echo ""
+        echo "Quality gates FAILED on attempt $ATTEMPT."
+        GATE_OUTPUT=$(cat "$GATE_OUTPUT_FILE")
+        rm -f "$GATE_OUTPUT_FILE"
+
+        # Reset the failed commit
+        echo "Resetting failed commit..."
+        git reset HEAD~1 --hard
+      fi
+    else
+      echo "No commit produced on attempt $ATTEMPT."
+      # Capture gate output for retry context even without a commit
+      GATE_OUTPUT_FILE=$(mktemp)
+      pnpm check 2>&1 | tee "$GATE_OUTPUT_FILE" || true
+      pnpm lint 2>&1 | tee -a "$GATE_OUTPUT_FILE" || true
+      pnpm test:unit --run 2>&1 | tee -a "$GATE_OUTPUT_FILE" || true
+      GATE_OUTPUT=$(cat "$GATE_OUTPUT_FILE")
+      rm -f "$GATE_OUTPUT_FILE"
+    fi
+
+    rm -f "$tmpfile"
+  done
+
+  # --- Handle task result ---
+
+  if [ "$TASK_SUCCEEDED" = true ]; then
+    # --- Extract testing instructions from last successful run ---
+
+    RESULT=$(jq -r "$final_result" "$tmpfile" 2>/dev/null || echo "")
+    TEST_INSTRUCTIONS=$(echo "$RESULT" | sed -n '/<test_instructions>/,/<\/test_instructions>/p' | sed '1d;$d')
+
+    {
+      echo "### Issue #$ISSUE_NUM: $ISSUE_TITLE"
+      echo ""
+      if [ -n "$TEST_INSTRUCTIONS" ]; then
+        echo "$TEST_INSTRUCTIONS"
+      else
+        echo "_No testing instructions provided by worker._"
+      fi
+      echo ""
+    } >> "$SUMMARY_FILE"
+
+    # --- Push to ralph branch ---
+
+    echo "Pushing to ralph branch..."
+    git push origin ralph
+
+    # --- Close the issue ---
+
+    echo "Closing issue #$ISSUE_NUM..."
+    gh issue close "$ISSUE_NUM" --comment "Completed by Ralph (attempt $ATTEMPT/$MAX_ATTEMPTS). Committed to \`ralph\` branch, will be merged into \`develop\`."
+    gh issue edit "$ISSUE_NUM" --remove-label "ralph" 2>/dev/null || true
+
+    # --- Update RALPH commits for next iteration ---
+
+    RALPH_COMMITS=$(git log --grep="RALPH" -n 10 --format="%H%n%ad%n%B---" --date=short 2>/dev/null || echo "No RALPH commits found")
+
+    rm -f "$tmpfile"
+
+    echo ""
+    echo "Issue #$ISSUE_NUM complete."
+  else
+    # --- Task failed after all attempts ---
+
+    echo ""
+    echo "Issue #$ISSUE_NUM FAILED after $MAX_ATTEMPTS attempts."
+
+    # Roll back any uncommitted changes
+    git checkout . 2>/dev/null || true
+    git clean -fd 2>/dev/null || true
+
+    # Comment on the issue with failure details
+    FAILURE_COMMENT="Ralph failed after $MAX_ATTEMPTS attempts. Last quality gate errors:
+
+\`\`\`
+$(echo "$GATE_OUTPUT" | head -100)
+\`\`\`
+
+Relabeling as HITL for human review."
+
+    gh issue comment "$ISSUE_NUM" --body "$FAILURE_COMMENT"
+
+    # Swap AFK → HITL label
+    gh issue edit "$ISSUE_NUM" --remove-label "AFK" 2>/dev/null || true
+    gh issue edit "$ISSUE_NUM" --add-label "HITL" 2>/dev/null || true
+
+    {
+      echo "### Issue #$ISSUE_NUM: $ISSUE_TITLE"
+      echo ""
+      echo "_FAILED after $MAX_ATTEMPTS attempts. Relabeled as HITL._"
+      echo ""
+    } >> "$SUMMARY_FILE"
+
+    echo "Issue #$ISSUE_NUM marked as HITL."
+  fi
 
   echo ""
-  echo "Issue #$ISSUE_NUM complete."
-  echo ""
-
   INDEX=$((INDEX + 1))
 done
 
 echo "=========================================="
-echo "All $TASK_COUNT tasks complete."
+echo "All $TASK_COUNT tasks processed."
 echo "=========================================="
 echo ""
 echo "=========================================="

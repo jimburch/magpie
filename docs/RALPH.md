@@ -27,13 +27,22 @@ pnpm dispatch
                                               │
                                               ├─ FOR EACH TASK (sequential):
                                               │   ├─ Fetches issue context via gh
-                                              │   ├─ Runs Claude Opus
-                                              │   │   ├─ Explores codebase
-                                              │   │   ├─ Implements feature
-                                              │   │   ├─ Runs quality gates
-                                              │   │   └─ Commits with RALPH: prefix
-                                              │   ├─ Pushes to ralph branch
-                                              │   └─ Closes issue via gh
+                                              │   ├─ RETRY LOOP (max 3 attempts, 10min each):
+                                              │   │   ├─ Attempt 1: Full prompt
+                                              │   │   │   ├─ Runs Claude Opus
+                                              │   │   │   │   ├─ Explores codebase
+                                              │   │   │   │   ├─ Implements feature
+                                              │   │   │   │   ├─ Runs quality gates internally
+                                              │   │   │   │   └─ Commits with RALPH: prefix
+                                              │   │   │   ├─ Script runs gates externally
+                                              │   │   │   ├─ PASS → break loop
+                                              │   │   │   └─ FAIL → git reset, retry
+                                              │   │   ├─ Attempt 2-3: Retry prompt
+                                              │   │   │   ├─ Gate errors + git diff context
+                                              │   │   │   └─ Same verify/reset cycle
+                                              │   │   └─ All attempts fail → rollback, skip
+                                              │   ├─ On success: push, close issue
+                                              │   └─ On failure: comment, swap AFK→HITL
                                               │
                                               ├─ Merges ralph → develop
                                               └─ Deletes ralph branch
@@ -63,7 +72,7 @@ ralph (ephemeral, created fresh from develop per dispatch)
 | Dependencies                  | "Blocked by #N" in issue body; dispatcher checks if those issues are closed |
 | Priority                      | Labels: `priority:high`, `priority:medium`, `priority:low`                  |
 | Issue classification          | `AFK` (autonomous) or `HITL` (needs human) as labels                        |
-| Processing model              | Sequential — one task at a time, ordered by dependency + priority           |
+| Processing model              | Sequential — one task at a time, up to 3 attempts each, ordered by dep + priority |
 | Architecture                  | Dispatcher/worker on GitHub Actions (not local loop)                        |
 | Dispatch trigger              | Manual only (`pnpm dispatch`) — never triggered by Claude                   |
 | Dispatch model                | Sonnet (reasoning/classification only)                                      |
@@ -72,7 +81,9 @@ ralph (ephemeral, created fresh from develop per dispatch)
 | Branch strategy               | `ralph` branch from `develop`, auto-merge after all tasks, delete branch    |
 | Commit convention             | `RALPH:` prefix with description and issue reference                        |
 | Issue lifecycle               | Worker closes issue via `gh issue close` after successful commit + push     |
-| Quality gates (before commit) | `pnpm check`, `pnpm lint`, `pnpm test:unit --run`                           |
+| Quality gates                 | Worker runs internally + script verifies externally after each attempt       |
+| Retry strategy                | Up to 3 attempts per task, 10min timeout each. Retry prompt includes gate errors + git diff |
+| Failure policy                | Rollback changes, comment on issue, swap AFK→HITL label, continue to next task |
 | Auth in CI                    | `CLAUDE_CODE_OAUTH_TOKEN` via Anthropic GitHub App                          |
 | CLAUDE.md                     | Amended git rule for worker exception; added "never dispatch" rule          |
 
@@ -111,6 +122,10 @@ Simplified to sequential processing: single `ralph` branch from `develop`, worke
 
 **Motivation:** Remove PR review overhead per ticket, allow Ralph to chain through dependency graphs in one dispatch, preserve safety via `develop` → `main` merge gate.
 
+### v3 — Retry loop with external verification (2026-03-23)
+
+Added iteration loop per task (max 3 attempts, 10min each) inspired by Matt Pocock's `afk-ralph.sh`. Script now runs quality gates externally after each Claude invocation to verify success. Failed commits are reset (`git reset HEAD~1`). Retry prompts include gate errors + git diff context. Tasks that exhaust all attempts get rolled back, commented with failure details, and relabeled AFK→HITL. Workflow timeout bumped to 60 minutes.
+
 ## Known Issues & Things to Figure Out
 
 ### 1. Worker prompt may need iteration
@@ -119,7 +134,7 @@ The worker prompt is a living document. After reviewing actual output from real 
 
 - How much exploration vs. implementation time the worker spends
 - Whether the quality gate instructions are clear enough
-- How the worker handles failures (blocked by missing deps, unclear requirements, etc.)
+- Whether the retry prompt gives enough context for successful recovery
 
 ### 2. E2E tests not in quality gates
 
@@ -131,9 +146,8 @@ Unit tests run before commit, but Playwright E2E tests are skipped because they 
 
 ### 3. Cost monitoring
 
-No cost tracking or budget caps are in place. Each worker run uses Opus in CI which can be expensive. The 30-minute workflow timeout provides a natural cap, but consider:
+No cost tracking or budget caps beyond timeouts. Each attempt is capped at 10 minutes, each task at 3 attempts, and the workflow at 60 minutes total. Consider:
 
-- Adding iteration/token limits to worker runs
 - Tracking spend per issue/dispatch
 - Setting up alerts for runaway workers
 
