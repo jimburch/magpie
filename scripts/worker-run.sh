@@ -15,6 +15,7 @@ fi
 
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 TASK_COUNT=$(echo "$TASKS_JSON" | jq 'length')
+SUMMARY_FILE=$(mktemp)
 
 echo "Processing $TASK_COUNT tasks sequentially..."
 echo ""
@@ -98,6 +99,7 @@ ${WORKER_PROMPT}"
   trap "rm -f $tmpfile" EXIT
 
   stream_text='select(.type == "assistant").message.content[]? | select(.type == "text").text // empty | gsub("\n"; "\r\n") | . + "\r\n\n"'
+  final_result='select(.type == "result").result // empty'
 
   echo "$FULL_PROMPT" | claude -p \
     --dangerously-skip-permissions \
@@ -109,6 +111,23 @@ ${WORKER_PROMPT}"
 
   echo ""
   echo "Worker finished issue #$ISSUE_NUM."
+
+  # --- Extract testing instructions ---
+
+  RESULT=$(jq -r "$final_result" "$tmpfile")
+  ISSUE_TITLE=$(echo "$ISSUE_JSON" | jq -r '.title')
+  TEST_INSTRUCTIONS=$(echo "$RESULT" | sed -n '/<test_instructions>/,/<\/test_instructions>/p' | sed '1d;$d')
+
+  {
+    echo "### Issue #$ISSUE_NUM: $ISSUE_TITLE"
+    echo ""
+    if [ -n "$TEST_INSTRUCTIONS" ]; then
+      echo "$TEST_INSTRUCTIONS"
+    else
+      echo "_No testing instructions provided by worker._"
+    fi
+    echo ""
+  } >> "$SUMMARY_FILE"
 
   # --- Push to ralph branch ---
 
@@ -135,3 +154,14 @@ done
 echo "=========================================="
 echo "All $TASK_COUNT tasks complete."
 echo "=========================================="
+echo ""
+echo "=========================================="
+echo "MANUAL TESTING GUIDE"
+echo "=========================================="
+echo ""
+cat "$SUMMARY_FILE"
+
+# --- Write summary to file for workflow to pick up ---
+
+cp "$SUMMARY_FILE" /tmp/ralph_summary.txt
+rm -f "$SUMMARY_FILE"

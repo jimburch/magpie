@@ -59,6 +59,15 @@ jobs:
           chmod +x scripts/worker-run.sh
           ./scripts/worker-run.sh
 
+      - name: Post testing summary
+        if: always()
+        run: |
+          if [ -f /tmp/ralph_summary.txt ]; then
+            echo "## Ralph Testing Guide" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            cat /tmp/ralph_summary.txt >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Merge ralph into develop
         run: |
           git checkout develop
