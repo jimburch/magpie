@@ -16,7 +16,8 @@
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test",
 		"db:up": "docker compose up -d",
-		"db:down": "docker compose down"
+		"db:down": "docker compose down",
+		"dispatch": "./scripts/dispatch.sh"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^2.0.2",

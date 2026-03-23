@@ -239,6 +239,7 @@ export const actions = {
 - Don't create separate API and frontend projects — SvelteKit handles both
 - Don't implement email/password auth — GitHub OAuth only for MVP
 - Don't use git to add, commit, or push code - only the user will do that. **Exception:** Ralph worker agents running in CI (`scripts/worker-run.sh`) may commit and push to `claude/*` branches.
+- Don't run `pnpm dispatch` or `./scripts/dispatch.sh` — only the user dispatches Ralph. You may create issues for Ralph to pick up, but never trigger the dispatch.
 
 ## UI Testing Workflow
 

@@ -65,7 +65,7 @@ jobs:
             "${{ inputs.prompt }}"
 
       - name: Push branch
-        run: git push origin "${{ inputs.branch_name }}"
+        run: git push --force-with-lease origin "${{ inputs.branch_name }}"
 
       - name: Create Pull Request
         env:
