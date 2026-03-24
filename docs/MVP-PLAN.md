@@ -90,7 +90,7 @@
   - FollowButton component
   - API route: `POST/DELETE /api/v1/users/:username/follow`
   - Followers/following counts on user profile
-- [ ] Comments:
+- [x] Comments:
   - CommentThread component (single-level threading)
   - Form action for posting comments
   - API route: `GET/POST /api/v1/setups/:id/comments`
