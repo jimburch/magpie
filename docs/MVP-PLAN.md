@@ -77,7 +77,7 @@
 
 ## Week 3: Social Features + CLI Foundation
 
-**Goal:** Stars, follows, comments work. CLI can authenticate and search.
+**Goal:** Stars, follows, comments work. CLI can authenticate.
 
 ### Tasks
 
@@ -105,12 +105,12 @@
   - Polling endpoint: `POST /api/v1/auth/device/poll`
   - `magpie login` command
   - `magpie logout` command
-- [ ] CLI search:
-  - `magpie search <query>` — calls explore API, formats results
-  - `magpie trending` — calls trending API
-  - `magpie view <owner>/<slug>` — calls setup detail API
+- ~CLI search (descoped — discovery features belong on web, not CLI):~
+  - ~`magpie search <query>`~
+  - ~`magpie trending`~
+  - ~`magpie view <owner>/<slug>`~
 
-### Milestone: Can star/follow/comment on web. CLI can login and search.
+### Milestone: Can star/follow/comment on web. CLI can login. (COMPLETE)
 
 ---
 
@@ -122,24 +122,25 @@
 
 - [ ] `magpie clone <owner>/<slug>`:
   - Fetch setup + files from API
+  - Interactive prompt: install to current directory or globally
   - Resolve target paths (expand `~`, `./`)
   - Conflict detection (check existing files)
   - Interactive prompts: overwrite / skip / backup / diff
   - Write files to disk
   - Post-install command execution (with confirmation)
   - Clone event recording (API call)
-  - `--dry-run`, `--force`, `--pick` flags
+  - `--dry-run`, `--force`, `--pick`, `--dir` flags
 - [ ] `magpie init`:
-  - Auto-detect common AI config files in cwd
-  - Interactive prompts for name, description, tools, tags
-  - File mapping prompts for each detected file
-  - Generate `setup.json`
+  - Auto-detect existing AI config files in cwd (`.claude/`, `.cursor/`, etc.)
+  - Confirm detected files with user, prompt for name/description/tools/tags
+  - Generate `setup.json` manifest from detected files
 - [ ] `magpie publish`:
+  - Auto-run `init` flow if no `setup.json` exists
   - Read and validate `setup.json` (Zod schema)
   - Collect referenced files
-  - `POST /api/v1/setups` with full payload
-  - `--update` flag for updating existing setups
-- [ ] `magpie star/unstar` and `magpie follow/unfollow`
+  - Create or update setup on platform (determined by owner/slug match)
+  - `POST /api/v1/setups` for new, `PATCH` for existing
+- ~`magpie star/unstar` and `magpie follow/unfollow` (descoped — social features are web-only)~
 - [ ] Validate `setup.json` schema with Zod (shared between CLI and server)
 
 ### Milestone: Full publish → discover → clone loop works end-to-end
