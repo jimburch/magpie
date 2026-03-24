@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { Avatar, AvatarImage, AvatarFallback } from '$lib/components/ui/avatar';
 	import { Separator } from '$lib/components/ui/separator';
 	import SetupCard from '$lib/components/SetupCard.svelte';
@@ -13,9 +14,8 @@
 		})
 	);
 
-	// @svelte-ignore state_referenced_locally
 	// eslint-disable-next-line svelte/prefer-writable-derived -- needs mutable state for optimistic follow count updates
-	let followersCount = $state(data.profile.followersCount);
+	let followersCount = $state(untrack(() => data.profile.followersCount));
 	$effect(() => {
 		followersCount = data.profile.followersCount;
 	});

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import SetupCard from '$lib/components/SetupCard.svelte';
 	import Pagination from '$lib/components/Pagination.svelte';
@@ -7,9 +8,8 @@
 
 	const { data } = $props();
 
-	// @svelte-ignore state_referenced_locally
 	// eslint-disable-next-line svelte/prefer-writable-derived -- needs two-way binding for search input
-	let searchInput = $state(data.q ?? '');
+	let searchInput = $state(untrack(() => data.q ?? ''));
 	$effect(() => {
 		searchInput = data.q ?? '';
 	});
