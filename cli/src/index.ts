@@ -7,6 +7,9 @@ import { registerLogout } from './commands/logout.js';
 import { registerClone } from './commands/clone.js';
 import { registerInit } from './commands/init.js';
 import { registerPublish } from './commands/publish.js';
+import { setApiBaseOverride, isNonProductionApi, getEffectiveApiBase } from './api.js';
+
+const DEV_API_BASE = 'http://localhost:5173/api/v1';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -17,7 +20,23 @@ const program = new Command();
 program
 	.name('magpie')
 	.description('Magpie CLI — clone, publish, and manage AI coding setups')
-	.version(pkg.version);
+	.version(pkg.version)
+	.option('--dev', `Use local dev server (${DEV_API_BASE})`)
+	.option('--api-base <url>', 'Override API base URL');
+
+program.hook('preAction', () => {
+	const opts = program.opts<{ dev?: boolean; apiBase?: string }>();
+
+	if (opts.apiBase) {
+		setApiBaseOverride(opts.apiBase);
+	} else if (opts.dev) {
+		setApiBaseOverride(DEV_API_BASE);
+	}
+
+	if (isNonProductionApi()) {
+		process.stderr.write(`⚠ dev mode → ${getEffectiveApiBase()}\n`);
+	}
+});
 
 registerLogin(program);
 registerLogout(program);

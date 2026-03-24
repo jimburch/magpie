@@ -120,7 +120,7 @@
 
 ### Tasks
 
-- [ ] `magpie clone <owner>/<slug>`:
+- [x] `magpie clone <owner>/<slug>`:
   - Fetch setup + files from API
   - Interactive prompt: install to current directory or globally
   - Resolve target paths (expand `~`, `./`)
@@ -130,18 +130,18 @@
   - Post-install command execution (with confirmation)
   - Clone event recording (API call)
   - `--dry-run`, `--force`, `--pick`, `--dir` flags
-- [ ] `magpie init`:
+- [x] `magpie init`:
   - Auto-detect existing AI config files in cwd (`.claude/`, `.cursor/`, etc.)
   - Confirm detected files with user, prompt for name/description/tools/tags
   - Generate `setup.json` manifest from detected files
-- [ ] `magpie publish`:
+- [x] `magpie publish`:
   - Auto-run `init` flow if no `setup.json` exists
   - Read and validate `setup.json` (Zod schema)
   - Collect referenced files
   - Create or update setup on platform (determined by owner/slug match)
   - `POST /api/v1/setups` for new, `PATCH` for existing
 - ~`magpie star/unstar` and `magpie follow/unfollow` (descoped — social features are web-only)~
-- [ ] Validate `setup.json` schema with Zod (shared between CLI and server)
+- [x] Validate `setup.json` schema with Zod (shared between CLI and server)
 
 ### Milestone: Full publish → discover → clone loop works end-to-end
 

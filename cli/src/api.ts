@@ -3,6 +3,32 @@ import { getConfig } from './config.js';
 const VERSION = '0.1.0';
 const USER_AGENT = `@magpie/cli/${VERSION}`;
 
+const PRODUCTION_API_BASE = 'https://magpie.sh/api/v1';
+
+/** Module-level override set by CLI flags (--dev, --api-base). */
+let apiBaseOverride: string | undefined;
+
+/** Set the API base URL override. Called from index.ts after resolving CLI flags. */
+export function setApiBaseOverride(url: string): void {
+	apiBaseOverride = url;
+}
+
+/** Resolve the effective API base URL using the precedence chain. */
+export function getEffectiveApiBase(perCallOverride?: string): string {
+	return (
+		perCallOverride ??
+		apiBaseOverride ??
+		process.env.MAGPIE_API_BASE ??
+		getConfig().apiBase ??
+		PRODUCTION_API_BASE
+	);
+}
+
+/** Returns true if the effective API base differs from the production default. */
+export function isNonProductionApi(): boolean {
+	return getEffectiveApiBase() !== PRODUCTION_API_BASE;
+}
+
 export class ApiError extends Error {
 	code: string;
 	status: number;
@@ -25,16 +51,16 @@ async function request<T>(
 	body: unknown,
 	options: ApiClientOptions
 ): Promise<T> {
-	const config = getConfig();
-	const base = options.apiBase ?? config.apiBase;
+	const base = getEffectiveApiBase(options.apiBase);
 	const url = `${base}${path}`;
 
 	const headers: Record<string, string> = {
 		'User-Agent': USER_AGENT
 	};
 
-	if (config.token) {
-		headers['Authorization'] = `Bearer ${config.token}`;
+	const { token } = getConfig();
+	if (token) {
+		headers['Authorization'] = `Bearer ${token}`;
 	}
 
 	if (body !== undefined) {
