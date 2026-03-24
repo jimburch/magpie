@@ -100,7 +100,7 @@
   - Commander setup with command structure
   - API client module (`api.ts`)
   - Config module (`config.ts` — read/write `~/.magpie/config.json`)
-- [ ] CLI auth:
+- [x] CLI auth:
   - GitHub Device Flow endpoint: `POST /api/v1/auth/device`
   - Polling endpoint: `POST /api/v1/auth/device/poll`
   - `magpie login` command
