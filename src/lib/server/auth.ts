@@ -30,10 +30,7 @@ const COOKIE_NAME = 'magpie_session';
 export async function createSession(token: string, userId: string) {
 	const id = hashToken(token);
 	const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
-	const [session] = await db
-		.insert(sessions)
-		.values({ id, userId, expiresAt })
-		.returning();
+	const [session] = await db.insert(sessions).values({ id, userId, expiresAt }).returning();
 	return session;
 }
 
@@ -56,10 +53,7 @@ export async function validateSessionToken(token: string) {
 	const timeRemaining = session.expiresAt.getTime() - Date.now();
 	if (timeRemaining < SESSION_REFRESH_THRESHOLD_MS) {
 		const newExpiresAt = new Date(Date.now() + SESSION_DURATION_MS);
-		await db
-			.update(sessions)
-			.set({ expiresAt: newExpiresAt })
-			.where(eq(sessions.id, id));
+		await db.update(sessions).set({ expiresAt: newExpiresAt }).where(eq(sessions.id, id));
 		session.expiresAt = newExpiresAt;
 	}
 

@@ -19,7 +19,9 @@
 
 <!-- Hero -->
 <section class="overflow-hidden border-b border-border">
-	<div class="mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 md:grid-cols-2 md:gap-16 md:py-24">
+	<div
+		class="mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 md:grid-cols-2 md:gap-16 md:py-24"
+	>
 		<!-- Left: copy -->
 		<div>
 			<p class="mb-3 text-sm font-medium uppercase tracking-widest text-muted-foreground">
@@ -29,8 +31,8 @@
 				Share your AI coding&nbsp;workflows
 			</h1>
 			<p class="mt-4 max-w-lg text-lg leading-relaxed text-muted-foreground">
-				Package your config files, tools, and automation into shareable setups.
-				Discover what other developers are running and clone it in one command.
+				Package your config files, tools, and automation into shareable setups. Discover what other
+				developers are running and clone it in one command.
 			</p>
 			<div class="mt-8 flex flex-wrap gap-3">
 				<a href="/auth/login/github" class={buttonVariants({ variant: 'default', size: 'lg' })}>
@@ -47,30 +49,44 @@
 
 		<!-- Right: decorative setup.json mock -->
 		<div class="relative hidden md:block">
-			<div
-				class="rounded-lg border border-border bg-card p-5 font-mono text-sm shadow-xl"
-			>
+			<div class="rounded-lg border border-border bg-card p-5 font-mono text-sm shadow-xl">
 				<div class="mb-3 flex items-center gap-2">
 					<span class="size-3 rounded-full bg-destructive/60"></span>
 					<span class="size-3 rounded-full bg-yellow-400/60"></span>
 					<span class="size-3 rounded-full bg-green-500/60"></span>
 					<span class="ml-2 text-xs text-muted-foreground">setup.json</span>
 				</div>
-				<pre class="leading-relaxed text-foreground/90"><span class="text-muted-foreground">{LBRACE}</span>
-  <span class="text-blue-500 dark:text-blue-400">"name"</span>: <span class="text-green-600 dark:text-green-400">"my-claude-setup"</span>,
-  <span class="text-blue-500 dark:text-blue-400">"version"</span>: <span class="text-green-600 dark:text-green-400">"1.0.0"</span>,
-  <span class="text-blue-500 dark:text-blue-400">"description"</span>: <span class="text-green-600 dark:text-green-400">"Full-stack TypeScript workflow"</span>,
-  <span class="text-blue-500 dark:text-blue-400">"tools"</span>: [<span class="text-green-600 dark:text-green-400">"claude-code"</span>, <span class="text-green-600 dark:text-green-400">"eslint"</span>, <span class="text-green-600 dark:text-green-400">"prettier"</span>],
-  <span class="text-blue-500 dark:text-blue-400">"files"</span>: <span class="text-muted-foreground">{LBRACE}</span>
-    <span class="text-blue-500 dark:text-blue-400">"CLAUDE.md"</span>: <span class="text-green-600 dark:text-green-400">"configs/CLAUDE.md"</span>,
-    <span class="text-blue-500 dark:text-blue-400">".cursorrules"</span>: <span class="text-green-600 dark:text-green-400">"configs/.cursorrules"</span>
+				<pre class="leading-relaxed text-foreground/90"><span class="text-muted-foreground"
+						>{LBRACE}</span
+					>
+  <span class="text-blue-500 dark:text-blue-400">"name"</span>: <span
+						class="text-green-600 dark:text-green-400">"my-claude-setup"</span
+					>,
+  <span class="text-blue-500 dark:text-blue-400">"version"</span>: <span
+						class="text-green-600 dark:text-green-400">"1.0.0"</span
+					>,
+  <span class="text-blue-500 dark:text-blue-400">"description"</span>: <span
+						class="text-green-600 dark:text-green-400">"Full-stack TypeScript workflow"</span
+					>,
+  <span class="text-blue-500 dark:text-blue-400">"tools"</span>: [<span
+						class="text-green-600 dark:text-green-400">"claude-code"</span
+					>, <span class="text-green-600 dark:text-green-400">"eslint"</span>, <span
+						class="text-green-600 dark:text-green-400">"prettier"</span
+					>],
+  <span class="text-blue-500 dark:text-blue-400">"files"</span>: <span class="text-muted-foreground"
+						>{LBRACE}</span
+					>
+    <span class="text-blue-500 dark:text-blue-400">"CLAUDE.md"</span>: <span
+						class="text-green-600 dark:text-green-400">"configs/CLAUDE.md"</span
+					>,
+    <span class="text-blue-500 dark:text-blue-400">".cursorrules"</span>: <span
+						class="text-green-600 dark:text-green-400">"configs/.cursorrules"</span
+					>
   <span class="text-muted-foreground">{RBRACE}</span>
 <span class="text-muted-foreground">{RBRACE}</span></pre>
 			</div>
 			<!-- Subtle decorative element behind the card -->
-			<div
-				class="absolute -right-6 -top-6 -z-10 size-48 rounded-full bg-primary/5 blur-2xl"
-			></div>
+			<div class="absolute -right-6 -top-6 -z-10 size-48 rounded-full bg-primary/5 blur-2xl"></div>
 		</div>
 	</div>
 </section>
@@ -107,9 +123,7 @@
 
 		<div class="grid grid-cols-1 gap-8 md:grid-cols-3">
 			<div class="text-center">
-				<div
-					class="mx-auto mb-4 flex size-12 items-center justify-center rounded-lg bg-primary/10"
-				>
+				<div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-lg bg-primary/10">
 					<Upload class="size-6 text-primary" />
 				</div>
 				<h3 class="text-base font-semibold">Share</h3>
@@ -119,9 +133,7 @@
 			</div>
 
 			<div class="text-center">
-				<div
-					class="mx-auto mb-4 flex size-12 items-center justify-center rounded-lg bg-primary/10"
-				>
+				<div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-lg bg-primary/10">
 					<Search class="size-6 text-primary" />
 				</div>
 				<h3 class="text-base font-semibold">Discover</h3>
@@ -131,9 +143,7 @@
 			</div>
 
 			<div class="text-center">
-				<div
-					class="mx-auto mb-4 flex size-12 items-center justify-center rounded-lg bg-primary/10"
-				>
+				<div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-lg bg-primary/10">
 					<Download class="size-6 text-primary" />
 				</div>
 				<h3 class="text-base font-semibold">Clone</h3>

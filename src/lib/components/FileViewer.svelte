@@ -25,9 +25,7 @@
 			{file.source}
 		</div>
 		<div class="flex items-center gap-3 text-xs text-muted-foreground">
-			<span
-				class="rounded-md bg-secondary px-1.5 py-0.5 font-medium text-secondary-foreground"
-			>
+			<span class="rounded-md bg-secondary px-1.5 py-0.5 font-medium text-secondary-foreground">
 				{file.placement}
 			</span>
 			<span>{lineCount} line{lineCount !== 1 ? 's' : ''}</span>

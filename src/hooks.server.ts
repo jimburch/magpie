@@ -1,5 +1,10 @@
 import type { Handle } from '@sveltejs/kit';
-import { validateSessionToken, getSessionToken, deleteSessionCookie, setSessionCookie } from '$lib/server/auth';
+import {
+	validateSessionToken,
+	getSessionToken,
+	deleteSessionCookie,
+	setSessionCookie
+} from '$lib/server/auth';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// Try cookie first (web), then Bearer token (CLI)

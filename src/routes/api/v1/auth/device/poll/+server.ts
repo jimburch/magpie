@@ -2,11 +2,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { deviceFlowStates } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import {
-	upsertGithubUser,
-	generateSessionToken,
-	createSession
-} from '$lib/server/auth';
+import { upsertGithubUser, generateSessionToken, createSession } from '$lib/server/auth';
 import { success, error } from '$lib/server/responses';
 import { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } from '$env/static/private';
 

@@ -75,11 +75,12 @@ Keep it concise but informative.
 After committing, output manual testing instructions wrapped in XML tags. These tell the reviewer how to verify your changes work correctly.
 
 <test_instructions>
+
 - Step-by-step instructions to manually test the changes
 - Include specific URLs to visit, buttons to click, API calls to make (curl examples)
 - Include what the expected behavior should be
 - Note any prerequisites (e.g. "must be logged in", "need at least one setup")
-</test_instructions>
+  </test_instructions>
 
 Be specific and practical — assume the tester has the app running locally on `http://localhost:5173`.
 

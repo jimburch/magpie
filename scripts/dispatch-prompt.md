@@ -35,8 +35,8 @@ Then, wrap your final JSON array in `<task_json>` XML tags. The array must be **
 
 ```json
 {
-  "issue_number": 42,
-  "prompt": "Implement the feature described in issue #42. See acceptance criteria in the issue body."
+	"issue_number": 42,
+	"prompt": "Implement the feature described in issue #42. See acceptance criteria in the issue body."
 }
 ```
 
@@ -44,14 +44,14 @@ For example:
 
 <task_json>
 [
-  {
-    "issue_number": 4,
-    "prompt": "Fix the URL crash bug on the profile page. See issue #4 for acceptance criteria."
-  },
-  {
-    "issue_number": 5,
-    "prompt": "Add integration tests for star queries. See issue #5 for details."
-  }
+{
+"issue_number": 4,
+"prompt": "Fix the URL crash bug on the profile page. See issue #4 for acceptance criteria."
+},
+{
+"issue_number": 5,
+"prompt": "Add integration tests for star queries. See issue #5 for details."
+}
 ]
 </task_json>
 

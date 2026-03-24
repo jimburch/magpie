@@ -1,11 +1,7 @@
 import type { RequestHandler } from './$types';
 import { requireApiAuth } from '$lib/server/guards';
 import { success, error } from '$lib/server/responses';
-import {
-	getSetupByOwnerSlug,
-	isSetupStarredByUser,
-	toggleStar
-} from '$lib/server/queries/setups';
+import { getSetupByOwnerSlug, isSetupStarredByUser, toggleStar } from '$lib/server/queries/setups';
 
 export const POST: RequestHandler = async (event) => {
 	const authResult = requireApiAuth(event);

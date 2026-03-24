@@ -65,41 +65,41 @@ ralph (ephemeral, created fresh from develop per dispatch)
 
 ## Decisions Made
 
-| Decision                      | Resolution                                                                  |
-| ----------------------------- | --------------------------------------------------------------------------- |
-| Task source                   | GitHub Issues (posted by skills or manually)                                |
-| Queue gating                  | `ralph` label + author `jimburch` required on issues                        |
-| Issue format                  | GitHub Issue with Blocked by, Acceptance criteria                           |
-| Dependencies                  | "Blocked by #N" in issue body; dispatcher checks if those issues are closed |
-| Priority                      | Labels: `priority:high`, `priority:medium`, `priority:low`                  |
-| Issue classification          | `AFK` (autonomous) or `HITL` (needs human) as labels                        |
-| Processing model              | Sequential — one task at a time, up to 3 attempts each, ordered by dep + priority |
-| Architecture                  | Dispatcher/worker on GitHub Actions (not local loop)                        |
-| Dispatch trigger              | Manual only (`pnpm dispatch`) — never triggered by Claude                   |
-| Dispatch model                | Sonnet (reasoning/classification only)                                      |
-| Worker model                  | Opus (code generation)                                                      |
-| Worker permissions            | `--dangerously-skip-permissions` (ephemeral CI runner, safe)                |
-| Branch strategy               | `ralph` branch from `develop`, auto-merge after all tasks, delete branch    |
-| Commit convention             | `RALPH:` prefix with description and issue reference                        |
-| Acceptance criteria tracking   | Worker checks off `- [ ]` → `- [x]` in issue body incrementally as it works |
-| Issue lifecycle               | Worker closes issue via `gh issue close` after successful commit + push     |
-| PRD auto-close                | After all tasks, script checks open `prd`-labeled issues; closes if all child issues are closed |
-| Quality gates                 | Worker runs internally + script verifies externally after each attempt       |
-| Retry strategy                | Up to 3 attempts per task, 10min timeout each. Retry prompt includes gate errors + git diff |
-| Failure policy                | Rollback changes, comment on issue, swap AFK→HITL label, continue to next task |
-| Auth in CI                    | `CLAUDE_CODE_OAUTH_TOKEN` via Anthropic GitHub App                          |
-| CLAUDE.md                     | Amended git rule for worker exception; added "never dispatch" rule          |
+| Decision                     | Resolution                                                                                      |
+| ---------------------------- | ----------------------------------------------------------------------------------------------- |
+| Task source                  | GitHub Issues (posted by skills or manually)                                                    |
+| Queue gating                 | `ralph` label + author `jimburch` required on issues                                            |
+| Issue format                 | GitHub Issue with Blocked by, Acceptance criteria                                               |
+| Dependencies                 | "Blocked by #N" in issue body; dispatcher checks if those issues are closed                     |
+| Priority                     | Labels: `priority:high`, `priority:medium`, `priority:low`                                      |
+| Issue classification         | `AFK` (autonomous) or `HITL` (needs human) as labels                                            |
+| Processing model             | Sequential — one task at a time, up to 3 attempts each, ordered by dep + priority               |
+| Architecture                 | Dispatcher/worker on GitHub Actions (not local loop)                                            |
+| Dispatch trigger             | Manual only (`pnpm dispatch`) — never triggered by Claude                                       |
+| Dispatch model               | Sonnet (reasoning/classification only)                                                          |
+| Worker model                 | Opus (code generation)                                                                          |
+| Worker permissions           | `--dangerously-skip-permissions` (ephemeral CI runner, safe)                                    |
+| Branch strategy              | `ralph` branch from `develop`, auto-merge after all tasks, delete branch                        |
+| Commit convention            | `RALPH:` prefix with description and issue reference                                            |
+| Acceptance criteria tracking | Worker checks off `- [ ]` → `- [x]` in issue body incrementally as it works                     |
+| Issue lifecycle              | Worker closes issue via `gh issue close` after successful commit + push                         |
+| PRD auto-close               | After all tasks, script checks open `prd`-labeled issues; closes if all child issues are closed |
+| Quality gates                | Worker runs internally + script verifies externally after each attempt                          |
+| Retry strategy               | Up to 3 attempts per task, 10min timeout each. Retry prompt includes gate errors + git diff     |
+| Failure policy               | Rollback changes, comment on issue, swap AFK→HITL label, continue to next task                  |
+| Auth in CI                   | `CLAUDE_CODE_OAUTH_TOKEN` via Anthropic GitHub App                                              |
+| CLAUDE.md                    | Amended git rule for worker exception; added "never dispatch" rule                              |
 
 ## Files
 
-| File                                    | Purpose                                                                     |
-| --------------------------------------- | --------------------------------------------------------------------------- |
-| `scripts/dispatch.sh`                   | Local orchestrator — fetches issues, calls Sonnet, dispatches workflow       |
-| `scripts/dispatch-prompt.md`            | Prompt for the Sonnet dispatcher — classification, dependency graph, ordering |
+| File                                    | Purpose                                                                          |
+| --------------------------------------- | -------------------------------------------------------------------------------- |
+| `scripts/dispatch.sh`                   | Local orchestrator — fetches issues, calls Sonnet, dispatches workflow           |
+| `scripts/dispatch-prompt.md`            | Prompt for the Sonnet dispatcher — classification, dependency graph, ordering    |
 | `scripts/worker-run.sh`                 | Worker runner — loops through tasks sequentially, commits, pushes, closes issues |
-| `scripts/worker-prompt.md`              | Prompt for the Opus worker — explore, implement, quality gates, commit       |
-| `.github/workflows/claude-work.yml`     | Actions workflow — creates ralph branch, runs worker, merges to develop      |
-| `.github/ISSUE_TEMPLATE/ralph-task.yml` | Issue template — Description, Classification, Blocked by, Acceptance criteria |
+| `scripts/worker-prompt.md`              | Prompt for the Opus worker — explore, implement, quality gates, commit           |
+| `.github/workflows/claude-work.yml`     | Actions workflow — creates ralph branch, runs worker, merges to develop          |
+| `.github/ISSUE_TEMPLATE/ralph-task.yml` | Issue template — Description, Classification, Blocked by, Acceptance criteria    |
 
 ## Labels
 
@@ -117,6 +117,7 @@ ralph (ephemeral, created fresh from develop per dispatch)
 Original architecture: dispatcher selected parallel tasks, each worker created a `claude/*` branch, opened a PR, user reviewed and merged.
 
 **Test runs:**
+
 - Issue #2 (star button bug): First run failed due to repo permissions. Second run succeeded — worker completed in ~6 minutes, PR #3 merged.
 
 ### v2 — Sequential processing on ralph branch (2026-03-23)
