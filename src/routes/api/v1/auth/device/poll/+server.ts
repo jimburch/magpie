@@ -1,6 +1,6 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
-import { deviceFlowStates } from '$lib/server/db/schema';
+import { deviceFlowStates, users } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { upsertGithubUser, generateSessionToken, createSession } from '$lib/server/auth';
 import { success, error } from '$lib/server/responses';
@@ -72,5 +72,8 @@ export const POST: RequestHandler = async ({ request }) => {
 	// Clean up device flow state
 	await db.delete(deviceFlowStates).where(eq(deviceFlowStates.id, state.id));
 
-	return success({ token });
+	const user = await db.query.users.findFirst({ where: eq(users.id, userId) });
+	const username = user?.username ?? '';
+
+	return success({ token, username });
 };
