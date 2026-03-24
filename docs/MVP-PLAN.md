@@ -95,7 +95,7 @@
   - Form action for posting comments
   - API route: `GET/POST /api/v1/setups/:id/comments`
   - Markdown rendering in comment bodies
-- [ ] CLI project scaffold:
+- [x] CLI project scaffold:
   - `cli/` directory with its own `package.json`
   - Commander setup with command structure
   - API client module (`api.ts`)
