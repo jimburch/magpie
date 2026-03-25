@@ -3,6 +3,7 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import StarButton from '$lib/components/StarButton.svelte';
 	import CommentThread from '$lib/components/CommentThread.svelte';
+	import AgentIcon from '$lib/components/AgentIcon.svelte';
 	import { timeAgo } from '$lib/utils';
 
 	const { data } = $props();
@@ -19,6 +20,20 @@
 		data.setup.starsCount;
 		starsCountOverride = null;
 	});
+
+	const fileGroups = $derived(
+		(() => {
+			const agentGroups = data.agents
+				.map((agent) => ({
+					agent,
+					count: data.files.filter((f) => f.agent === agent.slug).length
+				}))
+				.filter((g) => g.count > 0);
+
+			const sharedCount = data.files.filter((f) => !f.agent).length;
+			return { agentGroups, sharedCount };
+		})()
+	);
 
 	function copyCloneCommand() {
 		navigator.clipboard.writeText(cloneCommand);
@@ -116,11 +131,13 @@
 						<h3 class="mb-2 text-sm font-semibold text-muted-foreground">Agents</h3>
 						<div class="flex flex-wrap gap-1.5">
 							{#each data.agents as agent (agent.id)}
-								<span
-									class="rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
+								<a
+									href="/agents/{agent.slug}"
+									class="inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground hover:bg-secondary/80"
 								>
+									<AgentIcon slug={agent.slug} size={12} />
 									{agent.displayName}
-								</span>
+								</a>
 							{/each}
 						</div>
 					</div>
@@ -170,19 +187,46 @@
 					</div>
 				</div>
 
-				<!-- Files link -->
+				<!-- Files -->
 				<div>
 					<h3 class="mb-2 text-sm font-semibold text-muted-foreground">Files</h3>
+					<div class="space-y-1.5" data-testid="file-groups">
+						{#each fileGroups.agentGroups as group (group.agent.slug)}
+							<div class="flex items-center gap-2 text-sm" data-testid="agent-group">
+								<AgentIcon slug={group.agent.slug} size={16} />
+								<span class="font-medium">{group.agent.displayName}</span>
+								<span class="ml-auto text-xs text-muted-foreground"
+									>{group.count}
+									{group.count === 1 ? 'file' : 'files'}</span
+								>
+							</div>
+						{/each}
+						{#if fileGroups.sharedCount > 0}
+							<div class="flex items-center gap-2 text-sm" data-testid="shared-group">
+								<svg
+									class="size-4 shrink-0 text-muted-foreground"
+									viewBox="0 0 16 16"
+									fill="currentColor"
+									aria-hidden="true"
+								>
+									<path
+										d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0 0 16 13.25v-8.5A1.75 1.75 0 0 0 14.25 3H7.5a.25.25 0 0 1-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1H1.75Z"
+									/>
+								</svg>
+								<span class="font-medium">Shared</span>
+								<span class="ml-auto text-xs text-muted-foreground"
+									>{fileGroups.sharedCount}
+									{fileGroups.sharedCount === 1 ? 'file' : 'files'}</span
+								>
+							</div>
+						{/if}
+					</div>
 					<a
 						href="/{data.setup.ownerUsername}/{data.setup.slug}/files"
-						class="inline-flex items-center gap-1.5 text-sm text-foreground hover:underline"
+						class="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:underline"
 					>
-						<svg class="size-4" viewBox="0 0 16 16" fill="currentColor">
-							<path
-								d="M1.75 1A1.75 1.75 0 0 0 0 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0 0 16 13.25v-8.5A1.75 1.75 0 0 0 14.25 3H7.5a.25.25 0 0 1-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1H1.75Z"
-							/>
-						</svg>
-						Browse {data.files.length} file{data.files.length !== 1 ? 's' : ''}
+						Browse all {data.files.length}
+						{data.files.length === 1 ? 'file' : 'files'} →
 					</a>
 				</div>
 			</div>
