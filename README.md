@@ -103,18 +103,18 @@ The app will be running at [http://localhost:5173](http://localhost:5173).
 
 ### Commands
 
-| Command              | Description                              |
-| -------------------- | ---------------------------------------- |
-| `pnpm run dev`       | Start dev server on localhost:5173       |
-| `pnpm run build`     | Production build                         |
-| `pnpm run preview`   | Preview production build                 |
-| `pnpm run check`     | TypeScript type checking                 |
-| `pnpm run lint`      | ESLint + Prettier                        |
-| `pnpm run format`    | Auto-format with Prettier                |
-| `pnpm run test:unit` | Vitest unit tests                        |
-| `pnpm run test:e2e`  | Playwright e2e tests (desktop + mobile)  |
-| `pnpm run db:up`     | Start local PostgreSQL via Docker        |
-| `pnpm run db:down`   | Stop local PostgreSQL                    |
+| Command              | Description                             |
+| -------------------- | --------------------------------------- |
+| `pnpm run dev`       | Start dev server on localhost:5173      |
+| `pnpm run build`     | Production build                        |
+| `pnpm run preview`   | Preview production build                |
+| `pnpm run check`     | TypeScript type checking                |
+| `pnpm run lint`      | ESLint + Prettier                       |
+| `pnpm run format`    | Auto-format with Prettier               |
+| `pnpm run test:unit` | Vitest unit tests                       |
+| `pnpm run test:e2e`  | Playwright e2e tests (desktop + mobile) |
+| `pnpm run db:up`     | Start local PostgreSQL via Docker       |
+| `pnpm run db:down`   | Stop local PostgreSQL                   |
 
 ### Testing
 
@@ -169,17 +169,17 @@ All API routes live under `/api/v1/` and return consistent JSON:
 
 Key endpoints:
 
-| Endpoint                          | Methods          | Description             |
-| --------------------------------- | ---------------- | ----------------------- |
-| `/api/v1/setups`                  | GET, POST        | List/search, create     |
-| `/api/v1/setups/[id]`            | GET, PATCH, DELETE | Setup CRUD             |
-| `/api/v1/setups/[id]/files`      | GET              | Get files (for clone)   |
-| `/api/v1/setups/[id]/star`       | POST, DELETE     | Star/unstar             |
-| `/api/v1/setups/[id]/comments`   | GET, POST        | Comments                |
-| `/api/v1/setups/trending`        | GET              | Trending setups         |
-| `/api/v1/users/[username]`       | GET              | User profile            |
-| `/api/v1/users/[username]/follow`| POST, DELETE     | Follow/unfollow         |
-| `/api/v1/auth/device`            | POST             | CLI device auth flow    |
+| Endpoint                          | Methods            | Description           |
+| --------------------------------- | ------------------ | --------------------- |
+| `/api/v1/setups`                  | GET, POST          | List/search, create   |
+| `/api/v1/setups/[id]`             | GET, PATCH, DELETE | Setup CRUD            |
+| `/api/v1/setups/[id]/files`       | GET                | Get files (for clone) |
+| `/api/v1/setups/[id]/star`        | POST, DELETE       | Star/unstar           |
+| `/api/v1/setups/[id]/comments`    | GET, POST          | Comments              |
+| `/api/v1/setups/trending`         | GET                | Trending setups       |
+| `/api/v1/users/[username]`        | GET                | User profile          |
+| `/api/v1/users/[username]/follow` | POST, DELETE       | Follow/unfollow       |
+| `/api/v1/auth/device`             | POST               | CLI device auth flow  |
 
 ## Auth
 

@@ -43,6 +43,7 @@ const MULTI_AGENT_FILES: DetectedFile[] = [
 
 // Strip ANSI escape codes for easier assertion
 function stripAnsi(str: string): string {
+	// eslint-disable-next-line no-control-regex
 	return str.replace(/\u001B\[[0-9;]*m/g, '');
 }
 
