@@ -16,7 +16,7 @@ fi
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
 TASK_COUNT=$(echo "$TASKS_JSON" | jq 'length')
 SUMMARY_FILE=$(mktemp)
-MAX_ATTEMPTS=3
+MAX_ATTEMPTS=5
 ATTEMPT_TIMEOUT=600  # 10 minutes per attempt
 
 echo "Processing $TASK_COUNT tasks sequentially (max $MAX_ATTEMPTS attempts each)..."
