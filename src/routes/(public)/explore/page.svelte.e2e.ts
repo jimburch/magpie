@@ -18,10 +18,65 @@ test('renders search input in main content', async ({ page }) => {
 	await expect(mainSearch(page)).toBeVisible();
 });
 
+test('renders agent filter chips', async ({ page }) => {
+	await page.goto(EXPLORE_URL);
+	const chips = page.locator('main button[data-agent-slug]');
+	const count = await chips.count();
+	// If agents exist in the DB, chips should be visible
+	if (count > 0) {
+		await expect(chips.first()).toBeVisible();
+	}
+});
+
+test('agent chip toggles active state on click', async ({ page }) => {
+	await page.goto(EXPLORE_URL);
+	const chips = page.locator('main button[data-agent-slug]');
+	const count = await chips.count();
+	if (count === 0) return;
+
+	const chip = chips.first();
+	const slug = await chip.getAttribute('data-agent-slug');
+	await chip.click();
+	await expect(page).toHaveURL(new RegExp(`agent=${slug}`));
+	// chip should now be pressed
+	await expect(page.locator(`main button[data-agent-slug="${slug}"]`)).toHaveAttribute(
+		'aria-pressed',
+		'true'
+	);
+});
+
+test('clicking active agent chip removes it from URL', async ({ page }) => {
+	await page.goto(EXPLORE_URL);
+	const chips = page.locator('main button[data-agent-slug]');
+	if ((await chips.count()) === 0) return;
+
+	const chip = chips.first();
+	const slug = await chip.getAttribute('data-agent-slug');
+	// Select then deselect
+	await chip.click();
+	await page.waitForURL(new RegExp(`agent=${slug}`));
+	await page.locator(`main button[data-agent-slug="${slug}"]`).click();
+	await expect(page).not.toHaveURL(new RegExp(`agent=${slug}`));
+});
+
+test('multiple agent chips can be selected', async ({ page }) => {
+	await page.goto(EXPLORE_URL);
+	const chips = page.locator('main button[data-agent-slug]');
+	if ((await chips.count()) < 2) return;
+
+	const slug1 = await chips.nth(0).getAttribute('data-agent-slug');
+	const slug2 = await chips.nth(1).getAttribute('data-agent-slug');
+	await chips.nth(0).click();
+	await page.waitForURL(new RegExp(`agent=${slug1}`));
+	await page.locator(`main button[data-agent-slug="${slug2}"]`).click();
+	await expect(page).toHaveURL(new RegExp(`agent=${slug1}`));
+	await expect(page).toHaveURL(new RegExp(`agent=${slug2}`));
+});
+
 test('renders filter dropdowns', async ({ page }) => {
 	await page.goto(EXPLORE_URL);
 	const selects = page.locator('main select');
-	await expect(selects).toHaveCount(3);
+	await expect(selects).toHaveCount(2);
 });
 
 test('sort dropdown has correct options', async ({ page }) => {
@@ -120,12 +175,31 @@ test('clicking sort chip removes sort param', async ({ page }) => {
 	await expect(page).toHaveURL(/\/explore$/);
 });
 
+test('agent chip shows aria-pressed=false when not selected', async ({ page }) => {
+	await page.goto(EXPLORE_URL);
+	const chips = page.locator('main button[data-agent-slug]');
+	if ((await chips.count()) === 0) return;
+	await expect(chips.first()).toHaveAttribute('aria-pressed', 'false');
+});
+
+test('deep link with agent param activates chip', async ({ page }) => {
+	await page.goto(EXPLORE_URL);
+	const chips = page.locator('main button[data-agent-slug]');
+	if ((await chips.count()) === 0) return;
+	const slug = await chips.first().getAttribute('data-agent-slug');
+	await page.goto(`${EXPLORE_URL}?agent=${slug}`);
+	await expect(page.locator(`main button[data-agent-slug="${slug}"]`)).toHaveAttribute(
+		'aria-pressed',
+		'true'
+	);
+});
+
 test('mobile layout wraps filters', async ({ page, isMobile }) => {
 	test.skip(!isMobile, 'mobile-only test');
 	await page.goto(EXPLORE_URL);
 	const selects = page.locator('main select');
-	await expect(selects).toHaveCount(3);
-	for (let i = 0; i < 3; i++) {
+	await expect(selects).toHaveCount(2);
+	for (let i = 0; i < 2; i++) {
 		await expect(selects.nth(i)).toBeVisible();
 	}
 });

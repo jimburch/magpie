@@ -7,12 +7,18 @@ import { createSetup, searchSetups } from '$lib/server/queries/setups';
 
 export const GET: RequestHandler = async ({ url }) => {
 	const q = url.searchParams.get('q') ?? undefined;
-	const agent = url.searchParams.get('agent') ?? undefined;
+	const agentSlugs = url.searchParams.getAll('agent').filter(Boolean);
 	const tag = url.searchParams.get('tag') ?? undefined;
 	const sort = (url.searchParams.get('sort') as ExploreSort) || 'newest';
 	const page = Math.max(1, Number(url.searchParams.get('page') ?? 1));
 
-	const result = await searchSetups({ q, agentSlug: agent, tagName: tag, sort, page });
+	const result = await searchSetups({
+		q,
+		agentSlugs: agentSlugs.length > 0 ? agentSlugs : undefined,
+		tagName: tag,
+		sort,
+		page
+	});
 	return success(result);
 };
 

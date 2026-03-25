@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import SetupCard from '$lib/components/SetupCard.svelte';
 	import Pagination from '$lib/components/Pagination.svelte';
+	import AgentIcon from '$lib/components/AgentIcon.svelte';
 	import { Input } from '$lib/components/ui/input';
 	import type { ExploreSort } from '$lib/types';
 
@@ -21,21 +22,30 @@
 		clones: 'Most Clones'
 	};
 
-	function buildUrl(overrides: Record<string, string | number | undefined> = {}): string {
+	function buildUrl(
+		overrides: {
+			q?: string | undefined;
+			agents?: string[] | undefined;
+			tag?: string | undefined;
+			sort?: string | undefined;
+			page?: number | undefined;
+		} = {}
+	): string {
 		const merged = {
-			q: data.q,
-			tool: data.tool,
-			tag: data.tag,
-			sort: data.sort,
-			page: data.page,
-			...overrides
+			q: 'q' in overrides ? overrides.q : data.q,
+			agents: 'agents' in overrides ? overrides.agents : data.agents,
+			tag: 'tag' in overrides ? overrides.tag : data.tag,
+			sort: 'sort' in overrides ? overrides.sort : data.sort,
+			page: 'page' in overrides ? overrides.page : data.page
 		};
 
 		const parts: string[] = [];
-		if (merged.q) parts.push(`q=${encodeURIComponent(String(merged.q))}`);
-		if (merged.tool) parts.push(`tool=${encodeURIComponent(String(merged.tool))}`);
+		if (merged.q) parts.push(`q=${encodeURIComponent(merged.q)}`);
+		for (const slug of merged.agents ?? []) {
+			parts.push(`agent=${encodeURIComponent(slug)}`);
+		}
 		if (merged.tag) parts.push(`tag=${encodeURIComponent(String(merged.tag))}`);
-		if (merged.sort && merged.sort !== 'newest') parts.push(`sort=${String(merged.sort)}`);
+		if (merged.sort && merged.sort !== 'newest') parts.push(`sort=${merged.sort}`);
 		if (merged.page && Number(merged.page) > 1) parts.push(`page=${String(merged.page)}`);
 
 		return `/explore${parts.length > 0 ? `?${parts.join('&')}` : ''}`;
@@ -54,7 +64,15 @@
 		goto(buildUrl({ [key]: value || undefined, page: 1 }));
 	}
 
-	const hasFilters = $derived(!!data.q || !!data.tool || !!data.tag || data.sort !== 'newest');
+	function toggleAgent(slug: string) {
+		const current = data.agents ?? [];
+		const next = current.includes(slug) ? current.filter((s) => s !== slug) : [...current, slug];
+		goto(buildUrl({ agents: next.length > 0 ? next : undefined, page: 1 }));
+	}
+
+	const hasFilters = $derived(
+		!!data.q || (data.agents?.length ?? 0) > 0 || !!data.tag || data.sort !== 'newest'
+	);
 </script>
 
 <svelte:head>
@@ -95,19 +113,39 @@
 		</div>
 	</form>
 
+	<!-- Agent filter chips -->
+	{#if data.allAgents.length > 0}
+		<div class="mb-4 flex flex-wrap items-center gap-2">
+			{#each data.allAgents as agent (agent.id)}
+				{@const isActive = data.agents?.includes(agent.slug)}
+				<button
+					type="button"
+					onclick={() => toggleAgent(agent.slug)}
+					class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors
+						{isActive
+						? 'border-foreground bg-foreground text-background'
+						: 'border-border bg-background text-foreground hover:border-foreground/50 hover:bg-accent'}"
+					aria-pressed={isActive}
+					data-agent-slug={agent.slug}
+				>
+					<AgentIcon slug={agent.slug} size={14} />
+					{agent.displayName}
+					{#if agent.setupsCount > 0}
+						<span
+							class="ml-0.5 tabular-nums {isActive
+								? 'text-background/70'
+								: 'text-muted-foreground'}"
+						>
+							{agent.setupsCount}
+						</span>
+					{/if}
+				</button>
+			{/each}
+		</div>
+	{/if}
+
 	<!-- Filter/sort bar -->
 	<div class="mb-6 flex flex-wrap items-center gap-3">
-		<select
-			class="h-9 rounded-md border border-input bg-background px-3 text-sm"
-			value={data.tool ?? ''}
-			onchange={(e) => handleFilterChange('tool', e.currentTarget.value)}
-		>
-			<option value="">All Agents</option>
-			{#each data.allAgents as agent (agent.id)}
-				<option value={agent.slug}>{agent.displayName}</option>
-			{/each}
-		</select>
-
 		<select
 			class="h-9 rounded-md border border-input bg-background px-3 text-sm"
 			value={data.tag ?? ''}
@@ -139,15 +177,6 @@
 					>
 						&ldquo;{data.q}&rdquo;
 						<span aria-label="Remove search">&times;</span>
-					</a>
-				{/if}
-				{#if data.tool}
-					<a
-						href={buildUrl({ tool: undefined, page: 1 })}
-						class="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground hover:bg-secondary/80"
-					>
-						{data.allAgents.find((a) => a.slug === data.tool)?.displayName ?? data.tool}
-						<span aria-label="Remove tool filter">&times;</span>
 					</a>
 				{/if}
 				{#if data.tag}

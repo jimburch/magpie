@@ -311,12 +311,12 @@ const PAGE_SIZE = 12;
 
 export async function searchSetups(filters: {
 	q?: string;
-	agentSlug?: string;
+	agentSlugs?: string[];
 	tagName?: string;
 	sort: ExploreSort;
 	page: number;
 }) {
-	const { q, agentSlug, tagName, sort, page } = filters;
+	const { q, agentSlugs, tagName, sort, page } = filters;
 	const offset = (page - 1) * PAGE_SIZE;
 
 	const conditions: ReturnType<typeof sql>[] = [];
@@ -325,12 +325,15 @@ export async function searchSetups(filters: {
 		conditions.push(sql`${setups}.search_vector @@ websearch_to_tsquery('english', ${q})`);
 	}
 
-	if (agentSlug) {
+	if (agentSlugs && agentSlugs.length > 0) {
 		conditions.push(
 			sql`${setups.id} IN (
 				SELECT ${setupAgents.setupId} FROM ${setupAgents}
 				INNER JOIN ${agents} ON ${setupAgents.agentId} = ${agents.id}
-				WHERE ${agents.slug} = ${agentSlug}
+				WHERE ${agents.slug} IN (${sql.join(
+					agentSlugs.map((s) => sql`${s}`),
+					sql`, `
+				)})
 			)`
 		);
 	}

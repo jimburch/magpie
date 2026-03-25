@@ -2,6 +2,7 @@
 	import type { SetupCardProps } from '$lib/types';
 	import { Avatar, AvatarImage, AvatarFallback } from '$lib/components/ui/avatar';
 	import { timeAgo } from '$lib/utils';
+	import AgentIcon from '$lib/components/AgentIcon.svelte';
 
 	type Props = {
 		setup: SetupCardProps;
@@ -29,7 +30,10 @@
 	{#if visibleAgents.length > 0}
 		<div class="mt-2 flex flex-wrap items-center gap-1.5">
 			{#each visibleAgents as agent (agent.id)}
-				<span class="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
+				<span
+					class="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground"
+				>
+					<AgentIcon slug={agent.slug} size={12} />
 					{agent.displayName}
 				</span>
 			{/each}

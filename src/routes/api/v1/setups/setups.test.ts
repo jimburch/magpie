@@ -64,7 +64,7 @@ describe('GET /api/v1/setups', () => {
 		const { GET } = await import('./+server');
 		await GET(makeGetEvent({ agent: 'claude-code' }));
 		expect(mockSearchSetups).toHaveBeenCalledWith(
-			expect.objectContaining({ agentSlug: 'claude-code' })
+			expect.objectContaining({ agentSlugs: ['claude-code'] })
 		);
 	});
 
@@ -105,12 +105,12 @@ describe('GET /api/v1/setups', () => {
 		expect(Array.isArray(body.data.items[0].agents)).toBe(true);
 	});
 
-	it('passes agentSlug as undefined when no agent param', async () => {
+	it('passes agentSlugs as undefined when no agent param', async () => {
 		mockSearchSetups.mockResolvedValue(MOCK_SEARCH_RESULT);
 		const { GET } = await import('./+server');
 		await GET(makeGetEvent());
 		expect(mockSearchSetups).toHaveBeenCalledWith(
-			expect.objectContaining({ agentSlug: undefined })
+			expect.objectContaining({ agentSlugs: undefined })
 		);
 	});
 });
