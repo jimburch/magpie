@@ -9,7 +9,7 @@ const targetUserAlias = alias(users, 'target_user');
 
 export type FeedItem = {
 	id: string;
-	actionType: 'created_setup' | 'commented' | 'followed_user';
+	actionType: 'created_setup' | 'commented' | 'followed_user' | 'starred_setup';
 	createdAt: Date;
 	actorUsername: string;
 	actorAvatarUrl: string;
@@ -25,6 +25,12 @@ export type FeedItem = {
 };
 
 const FEED_ACTION_TYPES = ['created_setup', 'commented', 'followed_user'] as const;
+const PROFILE_ACTION_TYPES = [
+	'created_setup',
+	'commented',
+	'followed_user',
+	'starred_setup'
+] as const;
 
 export async function getHomeFeed(
 	userId: string,
@@ -76,6 +82,60 @@ export async function getHomeFeed(
 	const items = hasMore ? rows.slice(0, limit) : rows;
 
 	// Cast: actionType is narrowed to the three display types by the WHERE filter
+	const feedItems = items.map((row) => ({
+		...row,
+		actionType: row.actionType as FeedItem['actionType']
+	}));
+
+	const nextCursor =
+		hasMore && feedItems.length > 0
+			? feedItems[feedItems.length - 1].createdAt.toISOString()
+			: null;
+
+	return { items: feedItems, nextCursor };
+}
+
+export async function getProfileFeed(
+	userId: string,
+	cursor?: Date,
+	limit = 5
+): Promise<{ items: FeedItem[]; nextCursor: string | null }> {
+	const conditions = and(
+		eq(activities.userId, userId),
+		inArray(activities.actionType, [...PROFILE_ACTION_TYPES]),
+		...(cursor ? [lt(activities.createdAt, cursor)] : [])
+	);
+
+	const rows = await db
+		.select({
+			id: activities.id,
+			actionType: activities.actionType,
+			createdAt: activities.createdAt,
+			actorUsername: actorUser.username,
+			actorAvatarUrl: actorUser.avatarUrl,
+			setupId: activities.setupId,
+			setupName: setups.name,
+			setupSlug: setups.slug,
+			setupOwnerUsername: setupOwnerUser.username,
+			targetUserId: activities.targetUserId,
+			targetUsername: targetUserAlias.username,
+			targetAvatarUrl: targetUserAlias.avatarUrl,
+			commentId: activities.commentId,
+			commentBody: comments.body
+		})
+		.from(activities)
+		.innerJoin(actorUser, eq(activities.userId, actorUser.id))
+		.leftJoin(setups, eq(activities.setupId, setups.id))
+		.leftJoin(setupOwnerUser, eq(setups.userId, setupOwnerUser.id))
+		.leftJoin(targetUserAlias, eq(activities.targetUserId, targetUserAlias.id))
+		.leftJoin(comments, eq(activities.commentId, comments.id))
+		.where(conditions)
+		.orderBy(desc(activities.createdAt))
+		.limit(limit + 1);
+
+	const hasMore = rows.length > limit;
+	const items = hasMore ? rows.slice(0, limit) : rows;
+
 	const feedItems = items.map((row) => ({
 		...row,
 		actionType: row.actionType as FeedItem['actionType']

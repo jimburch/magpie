@@ -70,6 +70,13 @@
 				{:else}
 					a user
 				{/if}
+			{:else if item.actionType === 'starred_setup'}
+				starred
+				{#if setupHref}
+					<a href={setupHref} class="font-medium hover:underline">{item.setupName}</a>
+				{:else}
+					a setup
+				{/if}
 			{/if}
 		</p>
 

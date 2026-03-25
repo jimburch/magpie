@@ -3,6 +3,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { getUserByUsername } from '$lib/server/queries/users';
 import { getSetupsByUserId, getAgentsForSetups } from '$lib/server/queries/setups';
 import { isFollowing, toggleFollow } from '$lib/server/queries/follows';
+import { getProfileFeed } from '$lib/server/queries/activities';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	const user = await getUserByUsername(params.username);
@@ -20,11 +21,14 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const currentUserFollowing =
 		locals.user && locals.user.id !== user.id ? await isFollowing(locals.user.id, user.id) : false;
 
+	const { items: activityItems } = await getProfileFeed(user.id, undefined, 5);
+
 	return {
 		profile: user,
 		setups,
 		isFollowing: currentUserFollowing,
-		currentUserId: locals.user?.id ?? null
+		currentUserId: locals.user?.id ?? null,
+		activityItems
 	};
 };
 

@@ -4,6 +4,8 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import SetupCard from '$lib/components/SetupCard.svelte';
 	import FollowButton from '$lib/components/FollowButton.svelte';
+	import ActivityFeed from '$lib/components/ActivityFeed.svelte';
+	import type { FeedItem } from '$lib/server/queries/activities';
 
 	const { data } = $props();
 
@@ -22,6 +24,14 @@
 
 	const isOwnProfile = $derived(data.currentUserId === data.profile.id);
 	const showFollowButton = $derived(data.currentUserId !== null && !isOwnProfile);
+
+	// Hydrate dates (server sends strings over the wire)
+	const activityItems = $derived(
+		(data.activityItems as FeedItem[]).map((item) => ({
+			...item,
+			createdAt: new Date(item.createdAt)
+		}))
+	);
 </script>
 
 <svelte:head>
@@ -124,5 +134,28 @@
 		{:else}
 			<p class="text-muted-foreground">No setups yet.</p>
 		{/if}
+	</section>
+
+	<Separator class="my-6" />
+
+	<!-- Activity -->
+	<section data-testid="profile-activity">
+		<div class="mb-4 flex items-center justify-between">
+			<h2 class="text-lg font-semibold">Activity</h2>
+			{#if activityItems.length > 0}
+				<a
+					href="/{data.profile.username}/activity"
+					class="text-sm text-muted-foreground hover:text-foreground hover:underline underline-offset-4"
+				>
+					View all activity
+				</a>
+			{/if}
+		</div>
+
+		<ActivityFeed
+			items={activityItems}
+			emptyMessage="No activity yet."
+			paginationEndpoint="/api/v1/users/{data.profile.username}/activity"
+		/>
 	</section>
 </div>
