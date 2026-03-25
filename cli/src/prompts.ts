@@ -118,15 +118,20 @@ export interface SetupMetadata {
 	tags: string[];
 }
 
-/** Interactively collect setup metadata from the user. */
-export async function promptMetadata(): Promise<SetupMetadata> {
+/** Interactively collect setup metadata from the user.
+ *  Pass `prefilledAgents` to pre-populate the agents field from auto-detection. */
+export async function promptMetadata(prefilledAgents: string[] = []): Promise<SetupMetadata> {
 	const name = await input('Setup name');
 	const description = await input('Description');
 	const category = await input(
 		'Category (web-dev, mobile, data-science, devops, systems, general)',
 		'general'
 	);
-	const agentsRaw = await input('Agents (comma-separated, e.g. claude-code, cursor)', '');
+	const agentsDefault = prefilledAgents.join(', ');
+	const agentsRaw = await input(
+		'Agents (comma-separated, e.g. claude-code, cursor)',
+		agentsDefault
+	);
 	const tagsRaw = await input('Tags (comma-separated)', '');
 
 	const agents = agentsRaw
