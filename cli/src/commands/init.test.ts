@@ -20,7 +20,7 @@ const mockConfirmFileList = vi.fn();
 const mockPromptMetadata = vi.fn();
 
 vi.mock('../prompts.js', () => ({
-	confirm: (msg: string, def: boolean) => mockConfirm(msg, def),
+	confirm: (msg: string, def?: boolean) => mockConfirm(msg, def),
 	confirmFileList: (labels: string[]) => mockConfirmFileList(labels),
 	promptMetadata: (prefilledAgents?: string[]) => mockPromptMetadata(prefilledAgents),
 	promptDestination: vi.fn(),
@@ -29,6 +29,12 @@ vi.mock('../prompts.js', () => ({
 	select: vi.fn(),
 	input: vi.fn(),
 	resolveConflict: vi.fn()
+}));
+
+const mockFormatFileList = vi.fn();
+
+vi.mock('../format.js', () => ({
+	formatFileList: (...args: unknown[]) => mockFormatFileList(...args)
 }));
 
 const mockExistsSync = vi.fn();
@@ -133,7 +139,8 @@ beforeEach(() => {
 	vi.clearAllMocks();
 	mockExistsSync.mockReturnValue(false);
 	mockDetectFiles.mockReturnValue(DETECTED_FILES);
-	mockConfirmFileList.mockResolvedValue(true);
+	mockConfirm.mockResolvedValue(true);
+	mockFormatFileList.mockReturnValue('(formatted file list)');
 	mockPromptMetadata.mockResolvedValue(DEFAULT_METADATA);
 	mockWriteManifest.mockReturnValue(undefined);
 });
@@ -149,7 +156,8 @@ describe('runInitFlow — normal flow', () => {
 		const result = await runInitFlow(CWD);
 
 		expect(mockDetectFiles).toHaveBeenCalledWith(CWD);
-		expect(mockConfirmFileList).toHaveBeenCalled();
+		expect(mockFormatFileList).toHaveBeenCalledWith(DETECTED_FILES);
+		expect(mockConfirm).toHaveBeenCalledWith('Proceed with these files?', undefined);
 		expect(mockPromptMetadata).toHaveBeenCalled();
 		expect(mockWriteManifest).toHaveBeenCalledWith(
 			CWD,
@@ -172,7 +180,8 @@ describe('runInitFlow — normal flow', () => {
 
 describe('runInitFlow — user cancels at file confirmation', () => {
 	it('returns false and does not write manifest', async () => {
-		mockConfirmFileList.mockResolvedValue(false);
+		// First confirm call is "Proceed with these files?" — reject it
+		mockConfirm.mockResolvedValueOnce(false);
 
 		const result = await runInitFlow(CWD);
 
@@ -344,25 +353,19 @@ describe('runInitFlow — agents array auto-populated', () => {
 		expect(claudeCount).toBe(1);
 	});
 
-	it('reports detected agents to the user', async () => {
+	it('passes detected files to formatFileList for display', async () => {
 		await runInitFlow(CWD);
 
-		const printCalls = mockPrint.mock.calls.map((c) => c[0] as string);
-		const agentReport = printCalls.find((msg) => msg.includes('Found config files for:'));
-		expect(agentReport).toBeDefined();
-		// AGENTS_BY_SLUG['claude-code'].displayName is 'Claude Code'
-		expect(agentReport).toMatch(/Claude Code/i);
+		expect(mockFormatFileList).toHaveBeenCalledWith(DETECTED_FILES);
 	});
 
-	it('does not show agent report when no files detected', async () => {
+	it('does not call formatFileList when no files detected', async () => {
 		mockDetectFiles.mockReturnValue([]);
 		mockConfirm.mockResolvedValue(true);
 
 		await runInitFlow(CWD);
 
-		const printCalls = mockPrint.mock.calls.map((c) => c[0] as string);
-		const agentReport = printCalls.find((msg) => msg.includes('Found config files for:'));
-		expect(agentReport).toBeUndefined();
+		expect(mockFormatFileList).not.toHaveBeenCalled();
 	});
 
 	it('omits agents key from manifest when none detected and user provides none', async () => {
@@ -431,25 +434,20 @@ describe('runInitFlow — file tagging', () => {
 	});
 });
 
-// ── confirmation flow shows agent info ───────────────────────────────────────
+// ── confirmation flow uses formatFileList ────────────────────────────────────
 
 describe('runInitFlow — confirmation flow', () => {
-	it('includes agent tag in file labels shown to user', async () => {
+	it('passes detected files to formatFileList', async () => {
 		await runInitFlow(CWD);
 
-		const fileLabels = mockConfirmFileList.mock.calls[0]![0] as string[];
-		const hasAgentTag = fileLabels.some((label) => label.includes('[agent: claude-code]'));
-		expect(hasAgentTag).toBe(true);
+		expect(mockFormatFileList).toHaveBeenCalledWith(DETECTED_FILES);
 	});
 
-	it('does not include agent tag for shared files with no tool', async () => {
+	it('passes multi-agent files to formatFileList', async () => {
 		mockDetectFiles.mockReturnValue(MULTI_AGENT_FILES);
 
 		await runInitFlow(CWD);
 
-		const fileLabels = mockConfirmFileList.mock.calls[0]![0] as string[];
-		const readmeLabel = fileLabels.find((l) => l.includes('README.md'));
-		expect(readmeLabel).toBeDefined();
-		expect(readmeLabel).not.toContain('[agent:');
+		expect(mockFormatFileList).toHaveBeenCalledWith(MULTI_AGENT_FILES);
 	});
 });

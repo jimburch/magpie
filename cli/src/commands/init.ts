@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Command } from 'commander';
-import { AGENTS_BY_SLUG } from '@coati/agents-registry';
+import { AGENTS } from '@coati/agents-registry';
 import { detectFiles } from '../detector.js';
 import {
 	writeManifest,
@@ -9,8 +9,9 @@ import {
 	type Manifest,
 	type ManifestCategory
 } from '../manifest.js';
-import { confirm, confirmFileList, promptMetadata } from '../prompts.js';
+import { confirm, promptMetadata } from '../prompts.js';
 import { print, success, error, warning } from '../output.js';
+import { formatFileList } from '../format.js';
 
 const VALID_CATEGORIES: ManifestCategory[] = [
 	'web-dev',
@@ -70,19 +71,6 @@ export async function runInitFlow(cwd: string): Promise<boolean> {
 	const agentFileCounts = computeDetectedAgents(detected);
 	const autoDetectedAgents = [...agentFileCounts.keys()];
 
-	// Report detected agents to the user
-	if (autoDetectedAgents.length > 0) {
-		const agentSummary = autoDetectedAgents
-			.map((slug) => {
-				const agent = AGENTS_BY_SLUG[slug];
-				const count = agentFileCounts.get(slug)!;
-				const name = agent?.displayName ?? slug;
-				return `${name} (${count} file${count === 1 ? '' : 's'})`;
-			})
-			.join(', ');
-		print(`Found config files for: ${agentSummary}\n`);
-	}
-
 	let filesToInclude = detected;
 
 	if (detected.length === 0) {
@@ -98,21 +86,30 @@ export async function runInitFlow(cwd: string): Promise<boolean> {
 		}
 		filesToInclude = [];
 	} else {
-		// Show detected files (with agent tags) and ask user to confirm
-		const fileLabels = detected.map((f) => {
-			const agentTag = f.tool ? `  [agent: ${f.tool}]` : '';
-			return `${f.source}  →  ${f.target}  [${f.componentType}]${agentTag}`;
-		});
-		const confirmed = await confirmFileList(fileLabels);
+		// Show detected files grouped by agent with colored type badges
+		const formatted = formatFileList(detected);
+		process.stdout.write('\n' + formatted + '\n');
+		const confirmed = await confirm('Proceed with these files?');
 		if (!confirmed) {
 			print('Exiting without changes.');
 			return false;
 		}
 	}
 
+	// Build choice lists for interactive prompts
+	const agentChoices = AGENTS.map((a) => ({ label: a.displayName, value: a.slug }));
+	const categoryChoices: { label: string; value: string }[] = [
+		{ label: 'General', value: 'general' },
+		{ label: 'Web Dev', value: 'web-dev' },
+		{ label: 'Mobile', value: 'mobile' },
+		{ label: 'Data Science', value: 'data-science' },
+		{ label: 'DevOps', value: 'devops' },
+		{ label: 'Systems', value: 'systems' }
+	];
+
 	// Prompt for setup metadata (agents pre-filled from detection)
 	print('\nSetup metadata:\n');
-	const metadata = await promptMetadata(autoDetectedAgents);
+	const metadata = await promptMetadata(autoDetectedAgents, agentChoices, categoryChoices);
 
 	// Derive and validate the slug from the name
 	const slug = toSlug(metadata.name);

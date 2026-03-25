@@ -1,5 +1,5 @@
 import fs from 'fs';
-import readline from 'readline';
+import * as p from '@clack/prompts';
 import { generateDiff } from './diff.js';
 import { isJsonMode } from './output.js';
 
@@ -7,71 +7,51 @@ function requiresInteractivity(label: string): never {
 	throw new Error(`Interactive prompt required but --json mode is active: ${label}`);
 }
 
-function createRl(): readline.Interface {
-	return readline.createInterface({ input: process.stdin, output: process.stdout });
+function assertNotCancelled<T>(value: T | symbol): asserts value is T {
+	if (p.isCancel(value)) {
+		p.cancel('Operation cancelled.');
+		process.exit(0);
+	}
 }
 
 /** Ask a yes/no question. Returns true for yes, false for no. */
 export async function confirm(question: string, defaultValue = true): Promise<boolean> {
 	if (isJsonMode()) requiresInteractivity(question);
 
-	const hint = defaultValue ? '[Y/n]' : '[y/N]';
-	const rl = createRl();
-
-	return new Promise((resolve) => {
-		rl.question(`${question} ${hint} `, (answer) => {
-			rl.close();
-			if (answer === '') {
-				resolve(defaultValue);
-			} else {
-				resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
-			}
-		});
+	const result = await p.confirm({
+		message: question,
+		initialValue: defaultValue
 	});
+	assertNotCancelled(result);
+	return result;
 }
 
-/** Present a numbered list and ask the user to pick one. */
+/** Present a list and ask the user to pick one (arrow keys + enter). */
 export async function select<T extends string>(
 	question: string,
 	choices: { label: string; value: T }[]
 ): Promise<T> {
 	if (isJsonMode()) requiresInteractivity(question);
 
-	choices.forEach(({ label }, i) => {
-		process.stdout.write(`  ${i + 1}. ${label}\n`);
+	const result = await p.select({
+		message: question,
+		options: choices
 	});
-
-	return new Promise((resolve) => {
-		const rl = createRl();
-		const ask = () => {
-			rl.question(`${question} (1-${choices.length}): `, (answer) => {
-				const n = parseInt(answer, 10);
-				if (n >= 1 && n <= choices.length) {
-					rl.close();
-					resolve(choices[n - 1]!.value);
-				} else {
-					process.stdout.write(`Please enter a number between 1 and ${choices.length}\n`);
-					ask();
-				}
-			});
-		};
-		ask();
-	});
+	assertNotCancelled(result);
+	return result as T;
 }
 
 /** Ask for a single line of text input. */
 export async function input(question: string, defaultValue?: string): Promise<string> {
 	if (isJsonMode()) requiresInteractivity(question);
 
-	const hint = defaultValue !== undefined ? ` (${defaultValue})` : '';
-	const rl = createRl();
-
-	return new Promise((resolve) => {
-		rl.question(`${question}${hint}: `, (answer) => {
-			rl.close();
-			resolve(answer !== '' ? answer : (defaultValue ?? ''));
-		});
+	const result = await p.text({
+		message: question,
+		placeholder: defaultValue,
+		defaultValue
 	});
+	assertNotCancelled(result);
+	return result;
 }
 
 export type ConflictResolution = 'overwrite' | 'skip' | 'backup';
@@ -83,7 +63,7 @@ export async function resolveConflict(
 	filePath: string,
 	incomingContent: string
 ): Promise<ConflictResolution> {
-	process.stdout.write(`\n⚠ Conflict: ${filePath} already exists\n`);
+	p.log.warn(`Conflict: ${filePath} already exists`);
 
 	for (;;) {
 		const choice = await select<ConflictChoice>('How do you want to handle this?', [
@@ -134,6 +114,29 @@ export async function promptAgentSelection(
 	return select<string>('Install files for which agent?', choices);
 }
 
+/**
+ * Present an interactive checklist (arrow keys to move, space to toggle, enter to confirm).
+ * At least `min` items must be selected.
+ * Returns the values of all selected items.
+ */
+export async function checklist<T extends string>(
+	question: string,
+	choices: { label: string; value: T }[],
+	preselected: T[] = [],
+	min = 0
+): Promise<T[]> {
+	if (isJsonMode()) requiresInteractivity(question);
+
+	const result = await p.multiselect({
+		message: question,
+		options: choices,
+		initialValues: preselected,
+		required: min > 0
+	});
+	assertNotCancelled(result);
+	return result as T[];
+}
+
 export interface SetupMetadata {
 	name: string;
 	description: string;
@@ -143,25 +146,44 @@ export interface SetupMetadata {
 }
 
 /** Interactively collect setup metadata from the user.
- *  Pass `prefilledAgents` to pre-populate the agents field from auto-detection. */
-export async function promptMetadata(prefilledAgents: string[] = []): Promise<SetupMetadata> {
+ *  `prefilledAgents` pre-checks agents in the checklist from auto-detection.
+ *  `agentChoices` and `categoryChoices` let init.ts supply the option lists. */
+export async function promptMetadata(
+	prefilledAgents: string[] = [],
+	agentChoices: { label: string; value: string }[] = [],
+	categoryChoices: { label: string; value: string }[] = []
+): Promise<SetupMetadata> {
 	const name = await input('Setup name');
 	const description = await input('Description');
-	const category = await input(
-		'Category (web-dev, mobile, data-science, devops, systems, general)',
-		'general'
-	);
-	const agentsDefault = prefilledAgents.join(', ');
-	const agentsRaw = await input(
-		'Agents (comma-separated, e.g. claude-code, cursor)',
-		agentsDefault
-	);
-	const tagsRaw = await input('Tags (comma-separated)', '');
 
-	const agents = agentsRaw
-		.split(',')
-		.map((t) => t.trim())
-		.filter(Boolean);
+	// Category — single select
+	let category = 'general';
+	if (categoryChoices.length > 0) {
+		category = await select<string>('Category', categoryChoices);
+	} else {
+		category = await input(
+			'Category (web-dev, mobile, data-science, devops, systems, general)',
+			'general'
+		);
+	}
+
+	// Agents — checklist (must pick at least 1)
+	let agents: string[];
+	if (agentChoices.length > 0) {
+		agents = await checklist<string>('Agents', agentChoices, prefilledAgents, 1);
+	} else {
+		const agentsDefault = prefilledAgents.join(', ');
+		const agentsRaw = await input(
+			'Agents (comma-separated, e.g. claude-code, cursor)',
+			agentsDefault
+		);
+		agents = agentsRaw
+			.split(',')
+			.map((t) => t.trim())
+			.filter(Boolean);
+	}
+
+	const tagsRaw = await input('Tags (comma-separated)', '');
 	const tags = tagsRaw
 		.split(',')
 		.map((t) => t.trim())
@@ -192,36 +214,24 @@ export interface PickableFile {
 }
 
 /**
- * Present a numbered file list and let the user select which files to install.
+ * Present a file list and let the user select which files to install
+ * using arrow keys + space to toggle, enter to confirm.
  * Returns the indices (0-based) of selected files.
- * Pressing Enter with no input selects all files.
  */
 export async function pickFiles(files: PickableFile[]): Promise<number[]> {
 	if (isJsonMode()) requiresInteractivity('file picker');
 
-	process.stdout.write('\nFiles available to install:\n');
-	files.forEach((f, i) => {
-		process.stdout.write(`  ${i + 1}. ${f.source} → ${f.target} (${f.placement})\n`);
-	});
+	const options = files.map((f, i) => ({
+		label: `${f.source} → ${f.target} (${f.placement})`,
+		value: i
+	}));
 
-	return new Promise((resolve) => {
-		const rl = createRl();
-		rl.question(
-			'\nEnter file numbers to install (space-separated), or press Enter for all: ',
-			(answer) => {
-				rl.close();
-				const trimmed = answer.trim();
-				if (trimmed === '') {
-					resolve(files.map((_, i) => i));
-				} else {
-					const indices = trimmed
-						.split(/\s+/)
-						.map((n) => parseInt(n, 10) - 1)
-						.filter((n) => n >= 0 && n < files.length);
-					const unique = [...new Set(indices)].sort((a, b) => a - b);
-					resolve(unique);
-				}
-			}
-		);
+	const result = await p.multiselect({
+		message: 'Select files to install',
+		options,
+		initialValues: files.map((_, i) => i),
+		required: true
 	});
+	assertNotCancelled(result);
+	return (result as number[]).sort((a, b) => a - b);
 }

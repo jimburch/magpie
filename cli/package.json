@@ -14,6 +14,7 @@
 		"test:unit": "vitest run"
 	},
 	"dependencies": {
+		"@clack/prompts": "^1.1.0",
 		"@coati/agents-registry": "workspace:*",
 		"commander": "^12.1.0",
 		"diff": "^8.0.4",
