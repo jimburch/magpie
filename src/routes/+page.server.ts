@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { searchSetups, getToolsForSetups } from '$lib/server/queries/setups';
+import { searchSetups, getAgentsForSetups } from '$lib/server/queries/setups';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.user) {
@@ -9,12 +9,12 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	const results = await searchSetups({ sort: 'trending', page: 1 });
 	const setupIds = results.items.slice(0, 6).map((s) => s.id);
-	const toolsMap = await getToolsForSetups(setupIds);
+	const agentsMap = await getAgentsForSetups(setupIds);
 
 	return {
 		trendingSetups: results.items.slice(0, 6).map((s) => ({
 			...s,
-			tools: toolsMap[s.id] ?? []
+			agents: agentsMap[s.id] ?? []
 		}))
 	};
 };

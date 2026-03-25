@@ -22,7 +22,12 @@ export const componentTypeEnum = pgEnum('component_type', [
 	'command',
 	'skill',
 	'mcp_server',
-	'hook'
+	'hook',
+	'config',
+	'policy',
+	'agent_def',
+	'ignore',
+	'setup_script'
 ]);
 
 export const categoryEnum = pgEnum('category', [
@@ -69,10 +74,13 @@ export const tags = pgTable('tags', {
 	name: varchar('name', { length: 50 }).unique().notNull()
 });
 
-export const tools = pgTable('tools', {
+export const agents = pgTable('agents', {
 	id: uuid('id').defaultRandom().primaryKey(),
-	name: varchar('name', { length: 100 }).unique().notNull(),
-	slug: varchar('slug', { length: 100 }).unique().notNull()
+	slug: varchar('slug', { length: 100 }).unique().notNull(),
+	displayName: varchar('display_name', { length: 100 }).unique().notNull(),
+	icon: text('icon'),
+	website: text('website'),
+	official: boolean('official').default(false).notNull()
 });
 
 // ─── Tier 2: Depends on users ───────────────────────────────────────────────
@@ -160,6 +168,10 @@ export const setupFiles = pgTable(
 		componentType: componentTypeEnum('component_type').notNull().default('instruction'),
 		description: text('description'),
 		content: text('content').notNull(),
+		agent: varchar('agent', { length: 100 }).references(() => agents.slug, {
+			onDelete: 'set null',
+			onUpdate: 'cascade'
+		}),
 		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
 	},
 	(table) => [index('setup_files_setup_id_idx').on(table.setupId)]
@@ -181,19 +193,19 @@ export const setupTags = pgTable(
 	]
 );
 
-export const setupTools = pgTable(
-	'setup_tools',
+export const setupAgents = pgTable(
+	'setup_agents',
 	{
 		setupId: uuid('setup_id')
 			.references(() => setups.id, { onDelete: 'cascade' })
 			.notNull(),
-		toolId: uuid('tool_id')
-			.references(() => tools.id, { onDelete: 'cascade' })
+		agentId: uuid('agent_id')
+			.references(() => agents.id, { onDelete: 'cascade' })
 			.notNull()
 	},
 	(table) => [
-		primaryKey({ columns: [table.setupId, table.toolId] }),
-		index('setup_tools_tool_id_idx').on(table.toolId)
+		primaryKey({ columns: [table.setupId, table.agentId] }),
+		index('setup_agents_agent_id_idx').on(table.agentId)
 	]
 );
 
@@ -270,7 +282,7 @@ export const setupsRelations = relations(setups, ({ one, many }) => ({
 	user: one(users, { fields: [setups.userId], references: [users.id] }),
 	files: many(setupFiles),
 	setupTags: many(setupTags),
-	setupTools: many(setupTools),
+	setupAgents: many(setupAgents),
 	stars: many(stars),
 	comments: many(comments),
 	activities: many(activities)
@@ -294,7 +306,8 @@ export const deviceFlowStatesRelations = relations(deviceFlowStates, ({ one }) =
 }));
 
 export const setupFilesRelations = relations(setupFiles, ({ one }) => ({
-	setup: one(setups, { fields: [setupFiles.setupId], references: [setups.id] })
+	setup: one(setups, { fields: [setupFiles.setupId], references: [setups.id] }),
+	agent: one(agents, { fields: [setupFiles.agent], references: [agents.slug] })
 }));
 
 export const setupTagsRelations = relations(setupTags, ({ one }) => ({
@@ -306,13 +319,13 @@ export const tagsRelations = relations(tags, ({ many }) => ({
 	setupTags: many(setupTags)
 }));
 
-export const setupToolsRelations = relations(setupTools, ({ one }) => ({
-	setup: one(setups, { fields: [setupTools.setupId], references: [setups.id] }),
-	tool: one(tools, { fields: [setupTools.toolId], references: [tools.id] })
+export const setupAgentsRelations = relations(setupAgents, ({ one }) => ({
+	setup: one(setups, { fields: [setupAgents.setupId], references: [setups.id] }),
+	agent: one(agents, { fields: [setupAgents.agentId], references: [agents.id] })
 }));
 
-export const toolsRelations = relations(tools, ({ many }) => ({
-	setupTools: many(setupTools)
+export const agentsRelations = relations(agents, ({ many }) => ({
+	setupAgents: many(setupAgents)
 }));
 
 export const starsRelations = relations(stars, ({ one }) => ({
@@ -344,8 +357,8 @@ export type NewUser = typeof users.$inferInsert;
 export type Tag = typeof tags.$inferSelect;
 export type NewTag = typeof tags.$inferInsert;
 
-export type Tool = typeof tools.$inferSelect;
-export type NewTool = typeof tools.$inferInsert;
+export type Agent = typeof agents.$inferSelect;
+export type NewAgent = typeof agents.$inferInsert;
 
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
@@ -365,8 +378,8 @@ export type NewSetupFile = typeof setupFiles.$inferInsert;
 export type SetupTag = typeof setupTags.$inferSelect;
 export type NewSetupTag = typeof setupTags.$inferInsert;
 
-export type SetupTool = typeof setupTools.$inferSelect;
-export type NewSetupTool = typeof setupTools.$inferInsert;
+export type SetupAgent = typeof setupAgents.$inferSelect;
+export type NewSetupAgent = typeof setupAgents.$inferInsert;
 
 export type Star = typeof stars.$inferSelect;
 export type NewStar = typeof stars.$inferInsert;

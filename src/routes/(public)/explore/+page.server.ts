@@ -2,9 +2,9 @@ import type { PageServerLoad } from './$types';
 import type { ExploreSort } from '$lib/types';
 import {
 	searchSetups,
-	getAllTools,
+	getAllAgents,
 	getAllTags,
-	getToolsForSetups
+	getAgentsForSetups
 } from '$lib/server/queries/setups';
 
 const VALID_SORTS: ExploreSort[] = ['trending', 'stars', 'clones', 'newest'];
@@ -19,25 +19,25 @@ export const load: PageServerLoad = async ({ url }) => {
 		: 'newest';
 	const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
 
-	const [results, allTools, allTags] = await Promise.all([
-		searchSetups({ q, toolSlug: tool, tagName: tag, sort, page }),
-		getAllTools(),
+	const [results, allAgents, allTags] = await Promise.all([
+		searchSetups({ q, agentSlug: tool, tagName: tag, sort, page }),
+		getAllAgents(),
 		getAllTags()
 	]);
 
-	const toolsMap = await getToolsForSetups(results.items.map((s) => s.id));
+	const agentsMap = await getAgentsForSetups(results.items.map((s) => s.id));
 
 	return {
 		...results,
 		items: results.items.map((s) => ({
 			...s,
-			tools: toolsMap[s.id] ?? []
+			agents: agentsMap[s.id] ?? []
 		})),
 		q,
 		tool,
 		tag,
 		sort,
-		allTools,
+		allAgents,
 		allTags
 	};
 };

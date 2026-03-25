@@ -18,7 +18,7 @@
 	let license = $state('');
 	let minToolVersion = $state('');
 	let readmeContent = $state('');
-	let selectedToolIds = $state<string[]>([]);
+	let selectedAgentIds = $state<string[]>([]);
 	let selectedTagIds = $state<string[]>([]);
 
 	// Components
@@ -51,11 +51,11 @@
 		}
 	});
 
-	function toggleTool(id: string) {
-		if (selectedToolIds.includes(id)) {
-			selectedToolIds = selectedToolIds.filter((t) => t !== id);
+	function toggleAgent(id: string) {
+		if (selectedAgentIds.includes(id)) {
+			selectedAgentIds = selectedAgentIds.filter((t) => t !== id);
 		} else {
-			selectedToolIds = [...selectedToolIds, id];
+			selectedAgentIds = [...selectedAgentIds, id];
 		}
 	}
 
@@ -235,7 +235,7 @@
 				postInstall: postInstall || undefined,
 				prerequisites: prerequisites.length > 0 ? prerequisites : undefined,
 				files: bodyFiles.length > 0 ? bodyFiles : undefined,
-				toolIds: selectedToolIds.length > 0 ? selectedToolIds : undefined,
+				agentIds: selectedAgentIds.length > 0 ? selectedAgentIds : undefined,
 				tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
 			};
 
@@ -363,22 +363,22 @@
 			{/if}
 		</div>
 
-		<!-- Tools -->
+		<!-- Agents -->
 		<div>
-			<h2 class="mb-3 text-lg font-semibold">Tools</h2>
-			{#if data.tools.length === 0}
-				<p class="text-muted-foreground text-sm">No tools available yet.</p>
+			<h2 class="mb-3 text-lg font-semibold">Agents</h2>
+			{#if data.agents.length === 0}
+				<p class="text-muted-foreground text-sm">No agents available yet.</p>
 			{:else}
 				<div class="flex flex-wrap gap-3">
-					{#each data.tools as tool (tool.id)}
+					{#each data.agents as agent (agent.id)}
 						<label class="flex items-center gap-2 text-sm">
 							<input
 								type="checkbox"
-								checked={selectedToolIds.includes(tool.id)}
-								onchange={() => toggleTool(tool.id)}
+								checked={selectedAgentIds.includes(agent.id)}
+								onchange={() => toggleAgent(agent.id)}
 								class="rounded"
 							/>
-							{tool.name}
+							{agent.displayName}
 						</label>
 					{/each}
 				</div>

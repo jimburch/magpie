@@ -102,9 +102,9 @@
 			value={data.tool ?? ''}
 			onchange={(e) => handleFilterChange('tool', e.currentTarget.value)}
 		>
-			<option value="">All Tools</option>
-			{#each data.allTools as tool (tool.id)}
-				<option value={tool.slug}>{tool.name}</option>
+			<option value="">All Agents</option>
+			{#each data.allAgents as agent (agent.id)}
+				<option value={agent.slug}>{agent.displayName}</option>
 			{/each}
 		</select>
 
@@ -146,7 +146,7 @@
 						href={buildUrl({ tool: undefined, page: 1 })}
 						class="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground hover:bg-secondary/80"
 					>
-						{data.allTools.find((t) => t.slug === data.tool)?.name ?? data.tool}
+						{data.allAgents.find((a) => a.slug === data.tool)?.displayName ?? data.tool}
 						<span aria-label="Remove tool filter">&times;</span>
 					</a>
 				{/if}

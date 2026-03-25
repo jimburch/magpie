@@ -4,7 +4,7 @@ import {
 	getSetupByOwnerSlug,
 	getSetupFiles,
 	getSetupTags,
-	getSetupTools,
+	getSetupAgents,
 	isSetupStarredByUser,
 	toggleStar
 } from '$lib/server/queries/setups';
@@ -22,10 +22,10 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const setup = await getSetupByOwnerSlug(params.username, params.slug);
 	if (!setup) throw error(404, 'Setup not found');
 
-	const [files, setupTags, setupTools, comments] = await Promise.all([
+	const [files, setupTags, setupAgents, comments] = await Promise.all([
 		getSetupFiles(setup.id),
 		getSetupTags(setup.id),
-		getSetupTools(setup.id),
+		getSetupAgents(setup.id),
 		getSetupComments(setup.id)
 	]);
 
@@ -45,7 +45,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		setup,
 		files,
 		tags: setupTags,
-		tools: setupTools,
+		agents: setupAgents,
 		readmeHtml,
 		isStarred,
 		comments

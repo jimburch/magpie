@@ -110,16 +110,16 @@
 					</div>
 				</div>
 
-				<!-- Tools -->
-				{#if data.tools.length > 0}
+				<!-- Agents -->
+				{#if data.agents.length > 0}
 					<div>
-						<h3 class="mb-2 text-sm font-semibold text-muted-foreground">Tools</h3>
+						<h3 class="mb-2 text-sm font-semibold text-muted-foreground">Agents</h3>
 						<div class="flex flex-wrap gap-1.5">
-							{#each data.tools as tool (tool.id)}
+							{#each data.agents as agent (agent.id)}
 								<span
 									class="rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
 								>
-									{tool.name}
+									{agent.displayName}
 								</span>
 							{/each}
 						</div>

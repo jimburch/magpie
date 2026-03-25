@@ -1,7 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { getUserByUsername } from '$lib/server/queries/users';
-import { getSetupsByUserId, getToolsForSetups } from '$lib/server/queries/setups';
+import { getSetupsByUserId, getAgentsForSetups } from '$lib/server/queries/setups';
 import { isFollowing, toggleFollow } from '$lib/server/queries/follows';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -9,11 +9,11 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	if (!user) throw error(404, 'User not found');
 
 	const rawSetups = await getSetupsByUserId(user.id);
-	const toolsMap = await getToolsForSetups(rawSetups.map((s) => s.id));
+	const agentsMap = await getAgentsForSetups(rawSetups.map((s) => s.id));
 
 	const setups = rawSetups.map((s) => ({
 		...s,
-		tools: toolsMap[s.id] ?? [],
+		agents: agentsMap[s.id] ?? [],
 		ownerAvatarUrl: user.avatarUrl
 	}));
 

@@ -4,9 +4,9 @@ import {
 	setups,
 	setupFiles,
 	setupTags,
-	setupTools,
+	setupAgents,
 	tags,
-	tools,
+	agents,
 	stars,
 	users
 } from '$lib/server/db/schema';
@@ -92,10 +92,10 @@ export async function createSetup(userId: string, data: CreateSetupInput) {
 			await tx.insert(setupFiles).values(toSetupFileRows(setup.id, data.files));
 		}
 
-		if (data.toolIds && data.toolIds.length > 0) {
+		if (data.agentIds && data.agentIds.length > 0) {
 			await tx
-				.insert(setupTools)
-				.values(data.toolIds.map((toolId) => ({ setupId: setup.id, toolId })));
+				.insert(setupAgents)
+				.values(data.agentIds.map((agentId) => ({ setupId: setup.id, agentId })));
 		}
 
 		if (data.tagIds && data.tagIds.length > 0) {
@@ -184,12 +184,12 @@ export async function getSetupTags(setupId: string) {
 		.where(eq(setupTags.setupId, setupId));
 }
 
-export async function getSetupTools(setupId: string) {
+export async function getSetupAgents(setupId: string) {
 	return db
-		.select({ id: tools.id, name: tools.name, slug: tools.slug })
-		.from(setupTools)
-		.innerJoin(tools, eq(setupTools.toolId, tools.id))
-		.where(eq(setupTools.setupId, setupId));
+		.select({ id: agents.id, displayName: agents.displayName, slug: agents.slug })
+		.from(setupAgents)
+		.innerJoin(agents, eq(setupAgents.agentId, agents.id))
+		.where(eq(setupAgents.setupId, setupId));
 }
 
 export async function isSetupStarredByUser(setupId: string, userId: string) {
@@ -246,8 +246,8 @@ export async function getRecentSetups(limit = 12) {
 		.limit(limit);
 }
 
-export async function getAllTools() {
-	return db.select().from(tools).orderBy(tools.name);
+export async function getAllAgents() {
+	return db.select().from(agents).orderBy(agents.displayName);
 }
 
 export async function getAllTags() {
@@ -258,12 +258,12 @@ const PAGE_SIZE = 12;
 
 export async function searchSetups(filters: {
 	q?: string;
-	toolSlug?: string;
+	agentSlug?: string;
 	tagName?: string;
 	sort: ExploreSort;
 	page: number;
 }) {
-	const { q, toolSlug, tagName, sort, page } = filters;
+	const { q, agentSlug, tagName, sort, page } = filters;
 	const offset = (page - 1) * PAGE_SIZE;
 
 	const conditions: ReturnType<typeof sql>[] = [];
@@ -272,12 +272,12 @@ export async function searchSetups(filters: {
 		conditions.push(sql`${setups}.search_vector @@ websearch_to_tsquery('english', ${q})`);
 	}
 
-	if (toolSlug) {
+	if (agentSlug) {
 		conditions.push(
 			sql`${setups.id} IN (
-				SELECT ${setupTools.setupId} FROM ${setupTools}
-				INNER JOIN ${tools} ON ${setupTools.toolId} = ${tools.id}
-				WHERE ${tools.slug} = ${toolSlug}
+				SELECT ${setupAgents.setupId} FROM ${setupAgents}
+				INNER JOIN ${agents} ON ${setupAgents.agentId} = ${agents.id}
+				WHERE ${agents.slug} = ${agentSlug}
 			)`
 		);
 	}
@@ -368,24 +368,24 @@ export async function recordClone(setupId: string): Promise<void> {
 		.where(eq(setups.id, setupId));
 }
 
-export async function getToolsForSetups(setupIds: string[]) {
+export async function getAgentsForSetups(setupIds: string[]) {
 	if (setupIds.length === 0) return {};
 
 	const rows = await db
 		.select({
-			setupId: setupTools.setupId,
-			id: tools.id,
-			name: tools.name,
-			slug: tools.slug
+			setupId: setupAgents.setupId,
+			id: agents.id,
+			displayName: agents.displayName,
+			slug: agents.slug
 		})
-		.from(setupTools)
-		.innerJoin(tools, eq(setupTools.toolId, tools.id))
-		.where(inArray(setupTools.setupId, setupIds));
+		.from(setupAgents)
+		.innerJoin(agents, eq(setupAgents.agentId, agents.id))
+		.where(inArray(setupAgents.setupId, setupIds));
 
-	const map: Record<string, { id: string; name: string; slug: string }[]> = {};
+	const map: Record<string, { id: string; displayName: string; slug: string }[]> = {};
 	for (const row of rows) {
 		if (!map[row.setupId]) map[row.setupId] = [];
-		map[row.setupId].push({ id: row.id, name: row.name, slug: row.slug });
+		map[row.setupId].push({ id: row.id, displayName: row.displayName, slug: row.slug });
 	}
 	return map;
 }

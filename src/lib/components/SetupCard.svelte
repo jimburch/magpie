@@ -11,9 +11,9 @@
 
 	const { setup, username, showAuthor = false }: Props = $props();
 
-	const MAX_TOOLS = 3;
-	const visibleTools = $derived(setup.tools?.slice(0, MAX_TOOLS) ?? []);
-	const overflowCount = $derived(Math.max(0, (setup.tools?.length ?? 0) - MAX_TOOLS));
+	const MAX_AGENTS = 3;
+	const visibleAgents = $derived(setup.agents?.slice(0, MAX_AGENTS) ?? []);
+	const overflowCount = $derived(Math.max(0, (setup.agents?.length ?? 0) - MAX_AGENTS));
 </script>
 
 <a
@@ -26,11 +26,11 @@
 		<p class="mt-1 line-clamp-2 text-sm text-muted-foreground">{setup.description}</p>
 	{/if}
 
-	{#if visibleTools.length > 0}
+	{#if visibleAgents.length > 0}
 		<div class="mt-2 flex flex-wrap items-center gap-1.5">
-			{#each visibleTools as tool (tool.id)}
+			{#each visibleAgents as agent (agent.id)}
 				<span class="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
-					{tool.name}
+					{agent.displayName}
 				</span>
 			{/each}
 			{#if overflowCount > 0}

@@ -14,8 +14,8 @@ export type {
 	NewFollow,
 	Tag,
 	NewTag,
-	Tool,
-	NewTool,
+	Agent,
+	NewAgent,
 	Activity,
 	NewActivity,
 	Session,
@@ -24,8 +24,8 @@ export type {
 	NewDeviceFlowState,
 	SetupTag,
 	NewSetupTag,
-	SetupTool,
-	NewSetupTool
+	SetupAgent,
+	NewSetupAgent
 } from '$lib/server/db/schema';
 
 export type LayoutUser = {
@@ -45,7 +45,7 @@ export type SetupCardProps = {
 	starsCount: number;
 	clonesCount: number;
 	updatedAt: Date;
-	tools?: { id: string; name: string; slug: string }[];
+	agents?: { id: string; displayName: string; slug: string }[];
 	ownerAvatarUrl?: string;
 };
 
@@ -93,6 +93,7 @@ export const createSetupFileSchema = z.object({
 	content: z.string().min(1)
 });
 
+// Cross-reference: cli/src/validation.ts must stay in sync with this schema
 export const createSetupWithFilesSchema = createSetupSchema.extend({
 	readmePath: z.string().optional(),
 	category: z.enum(categoryEnum.enumValues).optional(),
@@ -101,7 +102,7 @@ export const createSetupWithFilesSchema = createSetupSchema.extend({
 	postInstall: z.string().optional(),
 	prerequisites: z.array(z.string()).optional(),
 	files: z.array(createSetupFileSchema).optional(),
-	toolIds: z.array(z.string().uuid()).optional(),
+	agentIds: z.array(z.string().uuid()).optional(),
 	tagIds: z.array(z.string().uuid()).optional()
 });
 
