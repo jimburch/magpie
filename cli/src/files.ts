@@ -3,7 +3,6 @@ import os from 'os';
 import path from 'path';
 import { type ManifestPlacement } from './manifest.js';
 import { resolveConflict } from './prompts.js';
-import { isJsonMode } from './output.js';
 
 export interface FileToWrite {
 	source: string;
@@ -19,6 +18,8 @@ export interface WriteOptions {
 	force?: boolean;
 	/** Preview what would be written without actually writing anything. */
 	dryRun?: boolean;
+	/** Treat as non-interactive: auto-skip conflicts instead of prompting. */
+	isJson?: boolean;
 }
 
 export type WriteOutcome = 'written' | 'skipped' | 'backed-up';
@@ -102,7 +103,7 @@ export async function writeSetupFiles(
 
 			if (options.force) {
 				resolution = 'overwrite';
-			} else if (isJsonMode()) {
+			} else if (options.isJson) {
 				// Non-interactive mode: skip conflicts rather than hanging on a prompt.
 				resolution = 'skip';
 			} else {

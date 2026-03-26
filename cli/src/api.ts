@@ -5,22 +5,10 @@ const USER_AGENT = `@coati/cli/${VERSION}`;
 
 const PRODUCTION_API_BASE = 'https://coati.sh/api/v1';
 
-/** Module-level override set by CLI flags (--dev, --api-base). */
-let apiBaseOverride: string | undefined;
-
-/** Set the API base URL override. Called from index.ts after resolving CLI flags. */
-export function setApiBaseOverride(url: string): void {
-	apiBaseOverride = url;
-}
-
 /** Resolve the effective API base URL using the precedence chain. */
 export function getEffectiveApiBase(perCallOverride?: string): string {
 	return (
-		perCallOverride ??
-		apiBaseOverride ??
-		process.env.COATI_API_BASE ??
-		getConfig().apiBase ??
-		PRODUCTION_API_BASE
+		perCallOverride ?? process.env.COATI_API_BASE ?? getConfig().apiBase ?? PRODUCTION_API_BASE
 	);
 }
 

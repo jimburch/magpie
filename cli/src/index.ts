@@ -9,7 +9,7 @@ import { registerInit } from './commands/init.js';
 import { registerPublish } from './commands/publish.js';
 import { registerSearch } from './commands/search.js';
 import { registerView } from './commands/view.js';
-import { setApiBaseOverride, isNonProductionApi, getEffectiveApiBase } from './api.js';
+import { isNonProductionApi, getEffectiveApiBase } from './api.js';
 import { createContext } from './context.js';
 
 const DEV_API_BASE = 'http://localhost:5173/api/v1';
@@ -34,9 +34,9 @@ program.hook('preAction', () => {
 	const opts = program.opts<{ dev?: boolean; apiBase?: string }>();
 
 	if (opts.apiBase) {
-		setApiBaseOverride(opts.apiBase);
+		process.env.COATI_API_BASE = opts.apiBase;
 	} else if (opts.dev) {
-		setApiBaseOverride(DEV_API_BASE);
+		process.env.COATI_API_BASE = DEV_API_BASE;
 	}
 
 	if (isNonProductionApi()) {

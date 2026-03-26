@@ -6,21 +6,9 @@ import { resolveTargetPath, writeSetupFiles, type FileToWrite } from './files.js
 
 // ── hoisted mocks ─────────────────────────────────────────────────────────────
 
-const { mockIsJsonMode, mockResolveConflict } = vi.hoisted(() => ({
-	mockIsJsonMode: vi.fn(() => false),
+const { mockResolveConflict } = vi.hoisted(() => ({
 	mockResolveConflict:
 		vi.fn<(filePath: string, incomingContent: string) => Promise<'overwrite' | 'skip' | 'backup'>>()
-}));
-
-vi.mock('./output.js', () => ({
-	isJsonMode: mockIsJsonMode,
-	setOutputMode: vi.fn(),
-	print: vi.fn(),
-	success: vi.fn(),
-	error: vi.fn(),
-	warning: vi.fn(),
-	info: vi.fn(),
-	json: vi.fn()
 }));
 
 vi.mock('./prompts.js', () => ({
@@ -41,7 +29,6 @@ let tmpDir: string;
 beforeEach(() => {
 	tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'coati-files-test-'));
 	vi.clearAllMocks();
-	mockIsJsonMode.mockReturnValue(false);
 });
 
 afterEach(() => {
@@ -233,12 +220,12 @@ describe('writeSetupFiles — force', () => {
 
 describe('writeSetupFiles — JSON mode', () => {
 	it('auto-skips conflicts in JSON mode without prompting', async () => {
-		mockIsJsonMode.mockReturnValue(true);
 		const filePath = path.join(tmpDir, 'json.md');
 		fs.writeFileSync(filePath, 'original');
 
 		const result = await writeSetupFiles([makeFile({ target: 'json.md', content: 'new' })], {
-			projectDir: tmpDir
+			projectDir: tmpDir,
+			isJson: true
 		});
 
 		expect(mockResolveConflict).not.toHaveBeenCalled();

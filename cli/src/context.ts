@@ -2,7 +2,8 @@ import fs from 'fs';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as api from './api.js';
-import * as output from './output.js';
+import { createOutputClient } from './output.js';
+import type { OutputMode, ApiError as OutputApiError, TableColumn } from './output.js';
 import * as prompts from './prompts.js';
 import * as auth from './auth.js';
 import { getConfig } from './config.js';
@@ -44,11 +45,11 @@ export interface IoClient {
 	warning(message: string): void;
 	info(message: string): void;
 	json(data: unknown): void;
-	apiError(err: output.ApiError): void;
-	table(rows: Record<string, unknown>[], columns: output.TableColumn[]): void;
+	apiError(err: OutputApiError): void;
+	table(rows: Record<string, unknown>[], columns: TableColumn[]): void;
 	isJson(): boolean;
 	isVerbose(): boolean;
-	setOutputMode(mode: output.OutputMode): void;
+	setOutputMode(mode: OutputMode): void;
 
 	// Interactive prompts
 	confirm(message: string, defaultValue?: boolean): Promise<boolean>;
@@ -119,6 +120,8 @@ export interface CommandContext {
 
 /** Create a CommandContext wired to the real CLI modules. */
 export function createContext(): CommandContext {
+	const outputClient = createOutputClient();
+
 	return {
 		api: {
 			get: api.get,
@@ -128,18 +131,18 @@ export function createContext(): CommandContext {
 		},
 
 		io: {
-			// Output methods
-			print: output.print,
-			success: output.success,
-			error: output.error,
-			warning: output.warning,
-			info: output.info,
-			json: output.json,
-			apiError: output.apiError,
-			table: output.table,
-			isJson: output.isJsonMode,
-			isVerbose: output.isVerbose,
-			setOutputMode: output.setOutputMode,
+			// Output methods — bound to the outputClient instance
+			print: (text) => outputClient.print(text),
+			success: (message) => outputClient.success(message),
+			error: (message) => outputClient.error(message),
+			warning: (message) => outputClient.warning(message),
+			info: (message) => outputClient.info(message),
+			json: (data) => outputClient.json(data),
+			apiError: (err) => outputClient.apiError(err),
+			table: (rows, columns) => outputClient.table(rows, columns),
+			isJson: () => outputClient.isJsonMode(),
+			isVerbose: () => outputClient.isVerbose(),
+			setOutputMode: (mode) => outputClient.setOutputMode(mode),
 
 			// Prompt methods
 			confirm: prompts.confirm,
@@ -169,7 +172,8 @@ export function createContext(): CommandContext {
 		fs: {
 			existsSync: fs.existsSync,
 			readConfig: getConfig,
-			writeSetupFiles: files.writeSetupFiles,
+			writeSetupFiles: (filesToWrite, options) =>
+				files.writeSetupFiles(filesToWrite, { ...options, isJson: outputClient.isJsonMode() }),
 			resolveTargetPath: files.resolveTargetPath,
 			runCommand: (command, options) => execAsync(command, options)
 		}

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createContext } from './context.js';
 import * as api from './api.js';
-import * as output from './output.js';
 import * as prompts from './prompts.js';
 import * as auth from './auth.js';
 import { getConfig } from './config.js';
@@ -27,27 +26,39 @@ describe('createContext', () => {
 	});
 
 	describe('io', () => {
-		it('wires output methods from output.ts', () => {
+		it('io output methods are functions', () => {
 			const ctx = createContext();
-			expect(ctx.io.print).toBe(output.print);
-			expect(ctx.io.success).toBe(output.success);
-			expect(ctx.io.error).toBe(output.error);
-			expect(ctx.io.warning).toBe(output.warning);
-			expect(ctx.io.info).toBe(output.info);
-			expect(ctx.io.json).toBe(output.json);
-			expect(ctx.io.apiError).toBe(output.apiError);
-			expect(ctx.io.table).toBe(output.table);
-			expect(ctx.io.setOutputMode).toBe(output.setOutputMode);
+			expect(typeof ctx.io.print).toBe('function');
+			expect(typeof ctx.io.success).toBe('function');
+			expect(typeof ctx.io.error).toBe('function');
+			expect(typeof ctx.io.warning).toBe('function');
+			expect(typeof ctx.io.info).toBe('function');
+			expect(typeof ctx.io.json).toBe('function');
+			expect(typeof ctx.io.apiError).toBe('function');
+			expect(typeof ctx.io.table).toBe('function');
+			expect(typeof ctx.io.setOutputMode).toBe('function');
 		});
 
-		it('maps isJson() to output.isJsonMode', () => {
+		it('setOutputMode and isJson interact correctly on the same context instance', () => {
 			const ctx = createContext();
-			expect(ctx.io.isJson).toBe(output.isJsonMode);
+			expect(ctx.io.isJson()).toBe(false);
+			ctx.io.setOutputMode('json');
+			expect(ctx.io.isJson()).toBe(true);
+			ctx.io.setOutputMode('text');
+			expect(ctx.io.isJson()).toBe(false);
 		});
 
-		it('maps isVerbose() to output.isVerbose', () => {
+		it('isVerbose returns false by default', () => {
 			const ctx = createContext();
-			expect(ctx.io.isVerbose).toBe(output.isVerbose);
+			expect(ctx.io.isVerbose()).toBe(false);
+		});
+
+		it('two createContext() calls have independent io state', () => {
+			const ctx1 = createContext();
+			const ctx2 = createContext();
+			ctx1.io.setOutputMode('json');
+			expect(ctx1.io.isJson()).toBe(true);
+			expect(ctx2.io.isJson()).toBe(false);
 		});
 
 		it('wires prompt methods from prompts.ts', () => {
@@ -101,9 +112,11 @@ describe('createContext', () => {
 			expect(ctx.fs.readConfig).toBe(getConfig);
 		});
 
-		it('wires writeSetupFiles from files.ts', () => {
+		it('writeSetupFiles is a function that delegates to files.writeSetupFiles', () => {
 			const ctx = createContext();
-			expect(ctx.fs.writeSetupFiles).toBe(files.writeSetupFiles);
+			expect(typeof ctx.fs.writeSetupFiles).toBe('function');
+			// It is a wrapper (not the same reference) that injects isJson from io state
+			expect(ctx.fs.writeSetupFiles).not.toBe(files.writeSetupFiles);
 		});
 
 		it('wires resolveTargetPath from files.ts', () => {
