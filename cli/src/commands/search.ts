@@ -1,7 +1,6 @@
 import { Command } from 'commander';
 import { AGENTS_BY_SLUG } from '@coati/agents-registry';
-import { get, ApiError } from '../api.js';
-import { setOutputMode, isJsonMode, json, print, error, info } from '../output.js';
+import { type CommandContext, ApiError } from '../context.js';
 
 interface SetupSearchResult {
 	id: string;
@@ -24,7 +23,7 @@ function formatAgents(agents: string[] | undefined): string {
 	return agents.map((slug) => AGENTS_BY_SLUG[slug]?.displayName ?? slug).join(', ');
 }
 
-export function registerSearch(program: Command): void {
+export function registerSearch(program: Command, ctx: CommandContext): void {
 	program
 		.command('search')
 		.description('Search for setups on Coati')
@@ -33,7 +32,7 @@ export function registerSearch(program: Command): void {
 		.option('--json', 'Output results as JSON')
 		.action(async (query: string | undefined, opts: SearchOptions) => {
 			if (opts.json) {
-				setOutputMode('json');
+				ctx.io.setOutputMode('json');
 			}
 
 			const params = new URLSearchParams();
@@ -45,40 +44,40 @@ export function registerSearch(program: Command): void {
 
 			let results: SetupSearchResult[];
 			try {
-				results = await get<SetupSearchResult[]>(path);
+				results = await ctx.api.get<SetupSearchResult[]>(path);
 			} catch (err_) {
 				if (err_ instanceof ApiError) {
-					error(`Search failed: ${err_.message}`);
+					ctx.io.error(`Search failed: ${err_.message}`);
 				} else if (err_ instanceof Error) {
-					error(`Search failed: ${err_.message}`);
+					ctx.io.error(`Search failed: ${err_.message}`);
 				} else {
-					error('An unexpected error occurred.');
+					ctx.io.error('An unexpected error occurred.');
 				}
 				process.exit(1);
 			}
 
-			if (isJsonMode()) {
-				json(results);
+			if (ctx.io.isJson()) {
+				ctx.io.json(results);
 				return;
 			}
 
 			if (results.length === 0) {
-				info('No setups found.');
+				ctx.io.info('No setups found.');
 				return;
 			}
 
 			for (const setup of results) {
 				const agentStr = formatAgents(setup.agents);
-				print(
+				ctx.io.print(
 					`${setup.ownerUsername}/${setup.slug}  ★ ${setup.starsCount}  ↓ ${setup.clonesCount}`
 				);
 				if (setup.description) {
-					print(`  ${setup.description}`);
+					ctx.io.print(`  ${setup.description}`);
 				}
 				if (agentStr) {
-					print(`  Agents: ${agentStr}`);
+					ctx.io.print(`  Agents: ${agentStr}`);
 				}
-				print('');
+				ctx.io.print('');
 			}
 		});
 }

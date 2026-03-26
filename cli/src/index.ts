@@ -49,7 +49,7 @@ registerLogout(program, ctx);
 registerClone(program);
 registerInit(program);
 registerPublish(program);
-registerSearch(program);
+registerSearch(program, ctx);
 registerView(program);
 
 program.parse(process.argv);
