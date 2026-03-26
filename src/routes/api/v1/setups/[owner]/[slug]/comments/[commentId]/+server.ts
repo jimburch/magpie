@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
 import { requireApiAuth } from '$lib/server/guards';
 import { success, error } from '$lib/server/responses';
-import { getSetupByOwnerSlug } from '$lib/server/queries/setups';
+import { setupRepo } from '$lib/server/queries/setupRepository';
 import { deleteComment, NotFoundError, ForbiddenError } from '$lib/server/queries/comments';
 
 export const DELETE: RequestHandler = async (event) => {
@@ -9,7 +9,7 @@ export const DELETE: RequestHandler = async (event) => {
 	if (authResult instanceof Response) return authResult;
 	const user = authResult;
 
-	const setup = await getSetupByOwnerSlug(event.params.owner, event.params.slug);
+	const setup = await setupRepo.getByOwnerSlug(event.params.owner, event.params.slug);
 	if (!setup) {
 		return error('Setup not found', 'NOT_FOUND', 404);
 	}
@@ -26,6 +26,6 @@ export const DELETE: RequestHandler = async (event) => {
 		throw err;
 	}
 
-	const updated = await getSetupByOwnerSlug(event.params.owner, event.params.slug);
+	const updated = await setupRepo.getByOwnerSlug(event.params.owner, event.params.slug);
 	return success({ commentsCount: updated!.commentsCount });
 };

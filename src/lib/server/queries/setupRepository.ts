@@ -6,7 +6,15 @@ import {
 	getSetupAgents,
 	isSetupStarredByUser,
 	getAllAgents,
-	getAllTags
+	getAllTags,
+	createSetup,
+	updateSetup,
+	deleteSetup,
+	toggleStarWithCount,
+	recordClone,
+	searchSetups,
+	getAllAgentsWithSetupCount,
+	getAgentBySlugWithSetups
 } from '$lib/server/queries/setups';
 
 export type SetupListItem = NonNullable<Awaited<ReturnType<typeof getSetupByOwnerSlug>>>;
@@ -37,8 +45,43 @@ export const setupRepo = {
 		return { ...setup, files, tags, agents, isStarred };
 	},
 
+	async getByOwnerSlug(ownerUsername: string, slug: string) {
+		return getSetupByOwnerSlug(ownerUsername, slug);
+	},
+
 	async getById(id: string) {
 		return getSetupById(id);
+	},
+
+	async getFiles(setupId: string) {
+		return getSetupFiles(setupId);
+	},
+
+	async search(filters: Parameters<typeof searchSetups>[0]) {
+		return searchSetups(filters);
+	},
+
+	async create(userId: string, data: Parameters<typeof createSetup>[1]) {
+		return createSetup(userId, data);
+	},
+
+	async update(id: string, data: Parameters<typeof updateSetup>[1]) {
+		return updateSetup(id, data);
+	},
+
+	async remove(id: string, userId: string) {
+		return deleteSetup(id, userId);
+	},
+
+	async toggleStar(
+		userId: string,
+		setupId: string
+	): Promise<{ starred: boolean; starsCount: number }> {
+		return toggleStarWithCount(userId, setupId);
+	},
+
+	async recordClone(setupId: string): Promise<void> {
+		return recordClone(setupId);
 	},
 
 	async getAllAgents() {
@@ -47,5 +90,13 @@ export const setupRepo = {
 
 	async getAllTags() {
 		return getAllTags();
+	},
+
+	async getAllAgentsWithSetupCount() {
+		return getAllAgentsWithSetupCount();
+	},
+
+	async getAgentBySlug(slug: string) {
+		return getAgentBySlugWithSetups(slug);
 	}
 };

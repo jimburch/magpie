@@ -8,6 +8,14 @@ const mockIsSetupStarredByUser = vi.fn();
 const mockGetSetupById = vi.fn();
 const mockGetAllAgents = vi.fn();
 const mockGetAllTags = vi.fn();
+const mockCreateSetup = vi.fn();
+const mockUpdateSetup = vi.fn();
+const mockDeleteSetup = vi.fn();
+const mockToggleStarWithCount = vi.fn();
+const mockRecordClone = vi.fn();
+const mockSearchSetups = vi.fn();
+const mockGetAllAgentsWithSetupCount = vi.fn();
+const mockGetAgentBySlugWithSetups = vi.fn();
 
 vi.mock('$lib/server/queries/setups', () => ({
 	getSetupByOwnerSlug: (...args: unknown[]) => mockGetSetupByOwnerSlug(...args),
@@ -17,7 +25,15 @@ vi.mock('$lib/server/queries/setups', () => ({
 	isSetupStarredByUser: (...args: unknown[]) => mockIsSetupStarredByUser(...args),
 	getSetupById: (...args: unknown[]) => mockGetSetupById(...args),
 	getAllAgents: (...args: unknown[]) => mockGetAllAgents(...args),
-	getAllTags: (...args: unknown[]) => mockGetAllTags(...args)
+	getAllTags: (...args: unknown[]) => mockGetAllTags(...args),
+	createSetup: (...args: unknown[]) => mockCreateSetup(...args),
+	updateSetup: (...args: unknown[]) => mockUpdateSetup(...args),
+	deleteSetup: (...args: unknown[]) => mockDeleteSetup(...args),
+	toggleStarWithCount: (...args: unknown[]) => mockToggleStarWithCount(...args),
+	recordClone: (...args: unknown[]) => mockRecordClone(...args),
+	searchSetups: (...args: unknown[]) => mockSearchSetups(...args),
+	getAllAgentsWithSetupCount: (...args: unknown[]) => mockGetAllAgentsWithSetupCount(...args),
+	getAgentBySlugWithSetups: (...args: unknown[]) => mockGetAgentBySlugWithSetups(...args)
 }));
 
 import { setupRepo } from './setupRepository';
@@ -201,5 +217,168 @@ describe('setupRepo.getAllTags', () => {
 
 		expect(result).toEqual(mockTags);
 		expect(mockGetAllTags).toHaveBeenCalled();
+	});
+});
+
+describe('setupRepo.getByOwnerSlug', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('returns setup when found', async () => {
+		mockGetSetupByOwnerSlug.mockResolvedValue(MOCK_SETUP);
+		const result = await setupRepo.getByOwnerSlug('alice', 'my-setup');
+		expect(result).toEqual(MOCK_SETUP);
+		expect(mockGetSetupByOwnerSlug).toHaveBeenCalledWith('alice', 'my-setup');
+	});
+
+	it('returns null when not found', async () => {
+		mockGetSetupByOwnerSlug.mockResolvedValue(null);
+		const result = await setupRepo.getByOwnerSlug('alice', 'missing');
+		expect(result).toBeNull();
+	});
+});
+
+describe('setupRepo.getFiles', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('delegates to getSetupFiles with setupId', async () => {
+		mockGetSetupFiles.mockResolvedValue(MOCK_FILES);
+		const result = await setupRepo.getFiles('setup-1');
+		expect(result).toEqual(MOCK_FILES);
+		expect(mockGetSetupFiles).toHaveBeenCalledWith('setup-1');
+	});
+});
+
+describe('setupRepo.search', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('delegates to searchSetups with filters', async () => {
+		const mockResult = { items: [], total: 0, page: 1, pageSize: 12, totalPages: 0 };
+		mockSearchSetups.mockResolvedValue(mockResult);
+
+		const filters = { q: 'test', sort: 'newest' as const, page: 1 };
+		const result = await setupRepo.search(filters);
+
+		expect(result).toEqual(mockResult);
+		expect(mockSearchSetups).toHaveBeenCalledWith(filters);
+	});
+});
+
+describe('setupRepo.create', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('delegates to createSetup with userId and data', async () => {
+		mockCreateSetup.mockResolvedValue(MOCK_SETUP);
+		const data: Parameters<typeof setupRepo.create>[1] = {
+			name: 'My Setup',
+			slug: 'my-setup',
+			version: '1.0.0',
+			description: 'A setup',
+			files: []
+		};
+		const result = await setupRepo.create('user-1', data);
+		expect(result).toEqual(MOCK_SETUP);
+		expect(mockCreateSetup).toHaveBeenCalledWith('user-1', data);
+	});
+});
+
+describe('setupRepo.update', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('delegates to updateSetup with id and data', async () => {
+		mockUpdateSetup.mockResolvedValue(MOCK_SETUP);
+		const data = { name: 'Updated' };
+		const result = await setupRepo.update('setup-1', data);
+		expect(result).toEqual(MOCK_SETUP);
+		expect(mockUpdateSetup).toHaveBeenCalledWith('setup-1', data);
+	});
+});
+
+describe('setupRepo.remove', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('delegates to deleteSetup with id and userId', async () => {
+		mockDeleteSetup.mockResolvedValue(1);
+		const result = await setupRepo.remove('setup-1', 'user-1');
+		expect(result).toBe(1);
+		expect(mockDeleteSetup).toHaveBeenCalledWith('setup-1', 'user-1');
+	});
+});
+
+describe('setupRepo.toggleStar', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('returns { starred: true, starsCount } when starring', async () => {
+		mockToggleStarWithCount.mockResolvedValue({ starred: true, starsCount: 6 });
+		const result = await setupRepo.toggleStar('user-1', 'setup-1');
+		expect(result).toEqual({ starred: true, starsCount: 6 });
+		expect(mockToggleStarWithCount).toHaveBeenCalledWith('user-1', 'setup-1');
+	});
+
+	it('returns { starred: false, starsCount } when unstarring', async () => {
+		mockToggleStarWithCount.mockResolvedValue({ starred: false, starsCount: 4 });
+		const result = await setupRepo.toggleStar('user-1', 'setup-1');
+		expect(result).toEqual({ starred: false, starsCount: 4 });
+	});
+});
+
+describe('setupRepo.recordClone', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('delegates to recordClone', async () => {
+		mockRecordClone.mockResolvedValue(undefined);
+		await setupRepo.recordClone('setup-1');
+		expect(mockRecordClone).toHaveBeenCalledWith('setup-1');
+	});
+});
+
+describe('setupRepo.getAllAgentsWithSetupCount', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('delegates to getAllAgentsWithSetupCount', async () => {
+		const mockData = [
+			{ id: 'a1', slug: 'claude-code', displayName: 'Claude Code', setupsCount: 3 }
+		];
+		mockGetAllAgentsWithSetupCount.mockResolvedValue(mockData);
+		const result = await setupRepo.getAllAgentsWithSetupCount();
+		expect(result).toEqual(mockData);
+		expect(mockGetAllAgentsWithSetupCount).toHaveBeenCalled();
+	});
+});
+
+describe('setupRepo.getAgentBySlug', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('returns agent with setups when found', async () => {
+		const mockAgent = { id: 'a1', slug: 'claude-code', displayName: 'Claude Code', setups: [] };
+		mockGetAgentBySlugWithSetups.mockResolvedValue(mockAgent);
+		const result = await setupRepo.getAgentBySlug('claude-code');
+		expect(result).toEqual(mockAgent);
+		expect(mockGetAgentBySlugWithSetups).toHaveBeenCalledWith('claude-code');
+	});
+
+	it('returns null when agent not found', async () => {
+		mockGetAgentBySlugWithSetups.mockResolvedValue(null);
+		const result = await setupRepo.getAgentBySlug('unknown');
+		expect(result).toBeNull();
 	});
 });

@@ -1,8 +1,8 @@
 import type { RequestHandler } from './$types';
 import { success } from '$lib/server/responses';
-import { getAllAgentsWithSetupCount } from '$lib/server/queries/setups';
+import { setupRepo } from '$lib/server/queries/setupRepository';
 
 export const GET: RequestHandler = async () => {
-	const agentsList = await getAllAgentsWithSetupCount();
+	const agentsList = await setupRepo.getAllAgentsWithSetupCount();
 	return success(agentsList);
 };

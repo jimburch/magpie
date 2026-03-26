@@ -230,6 +230,38 @@ export async function toggleStar(userId: string, setupId: string) {
 	});
 }
 
+export async function toggleStarWithCount(
+	userId: string,
+	setupId: string
+): Promise<{ starred: boolean; starsCount: number }> {
+	return db.transaction(async (tx) => {
+		const existing = await tx
+			.select({ id: stars.id })
+			.from(stars)
+			.where(and(eq(stars.userId, userId), eq(stars.setupId, setupId)))
+			.limit(1);
+
+		let starred: boolean;
+		if (existing.length > 0) {
+			await tx.delete(stars).where(eq(stars.id, existing[0].id));
+			starred = false;
+		} else {
+			await tx.insert(stars).values({ userId, setupId });
+			starred = true;
+		}
+
+		const [updated] = await tx
+			.update(setups)
+			.set({
+				starsCount: starred ? sql`${setups.starsCount} + 1` : sql`${setups.starsCount} - 1`
+			})
+			.where(eq(setups.id, setupId))
+			.returning({ starsCount: setups.starsCount });
+
+		return { starred, starsCount: updated.starsCount };
+	});
+}
+
 export async function getRecentSetups(limit = 12) {
 	return db
 		.select({
