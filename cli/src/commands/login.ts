@@ -1,13 +1,6 @@
 import { Command } from 'commander';
 import pc from 'picocolors';
-import {
-	requestDeviceCode,
-	pollForToken,
-	verifyToken,
-	storeCredentials,
-	isLoggedIn
-} from '../auth.js';
-import { setOutputMode, isJsonMode, json, print, success, error } from '../output.js';
+import type { CommandContext } from '../context.js';
 
 const BRAILLE_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
@@ -15,8 +8,8 @@ interface Spinner {
 	stop(): void;
 }
 
-function createSpinner(message: string): Spinner {
-	if (isJsonMode()) {
+function createSpinner(message: string, isJson: boolean): Spinner {
+	if (isJson) {
 		return { stop: () => {} };
 	}
 
@@ -41,7 +34,7 @@ interface LoginOptions {
 	json?: boolean;
 }
 
-export function registerLogin(program: Command): void {
+export function registerLogin(program: Command, ctx: CommandContext): void {
 	program
 		.command('login')
 		.description('Authenticate with Coati using GitHub Device Flow')
@@ -50,35 +43,35 @@ export function registerLogin(program: Command): void {
 		.option('--json', 'Output structured JSON')
 		.action(async (options: LoginOptions) => {
 			if (options.json) {
-				setOutputMode('json');
+				ctx.io.setOutputMode('json');
 			}
 
 			// Block if already logged in (unless --force)
-			if (isLoggedIn() && !options.force) {
-				error('Already logged in. Use --force to re-authenticate.');
+			if (ctx.auth.isLoggedIn() && !options.force) {
+				ctx.io.error('Already logged in. Use --force to re-authenticate.');
 				process.exit(1);
 			}
 
 			// Step 1: Request device code
-			let deviceInfo: Awaited<ReturnType<typeof requestDeviceCode>>;
+			let deviceInfo: Awaited<ReturnType<typeof ctx.auth.requestDeviceCode>>;
 			try {
-				deviceInfo = await requestDeviceCode();
+				deviceInfo = await ctx.auth.requestDeviceCode();
 			} catch (err) {
-				error(err instanceof Error ? err.message : 'Failed to start device flow');
+				ctx.io.error(err instanceof Error ? err.message : 'Failed to start device flow');
 				process.exit(1);
 			}
 
 			// Step 2: Show user code + verification URL
-			if (isJsonMode()) {
-				json({
+			if (ctx.io.isJson()) {
+				ctx.io.json({
 					userCode: deviceInfo.userCode,
 					verificationUri: deviceInfo.verificationUri
 				});
 			} else {
-				print('');
-				print(`  Open: ${pc.bold(deviceInfo.verificationUri)}`);
-				print(`  Code: ${pc.bold(pc.yellow(deviceInfo.userCode))}`);
-				print('');
+				ctx.io.print('');
+				ctx.io.print(`  Open: ${pc.bold(deviceInfo.verificationUri)}`);
+				ctx.io.print(`  Code: ${pc.bold(pc.yellow(deviceInfo.userCode))}`);
+				ctx.io.print('');
 			}
 
 			// Step 3: Auto-open browser (unless --no-browser)
@@ -92,12 +85,12 @@ export function registerLogin(program: Command): void {
 			}
 
 			// Step 4: Poll with spinner
-			const spinner = createSpinner('Waiting for authorization...');
+			const spinner = createSpinner('Waiting for authorization...', ctx.io.isJson());
 
 			let token: string;
 			let username: string;
 			try {
-				const result = await pollForToken(
+				const result = await ctx.auth.pollForToken(
 					deviceInfo.deviceCode,
 					deviceInfo.interval,
 					deviceInfo.expiresIn
@@ -106,27 +99,27 @@ export function registerLogin(program: Command): void {
 				username = result.username;
 			} catch (err) {
 				spinner.stop();
-				error(err instanceof Error ? err.message : 'Authorization failed');
+				ctx.io.error(err instanceof Error ? err.message : 'Authorization failed');
 				process.exit(1);
 			}
 
 			spinner.stop();
 
 			// Step 5: Store credentials
-			storeCredentials(token, username);
+			ctx.auth.storeCredentials(token, username);
 
 			// Step 6: Verify token (non-fatal if it fails)
 			try {
-				await verifyToken();
+				await ctx.auth.verifyToken();
 			} catch {
 				// Credentials are stored; verification failure is non-fatal
 			}
 
 			// Step 7: Print success
-			if (isJsonMode()) {
-				json({ success: true, username });
+			if (ctx.io.isJson()) {
+				ctx.io.json({ success: true, username });
 			} else {
-				success(`Logged in as ${pc.bold(username)}`);
+				ctx.io.success(`Logged in as ${pc.bold(username)}`);
 			}
 		});
 }
