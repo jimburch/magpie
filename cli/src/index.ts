@@ -18,9 +18,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 const pkg = require(join(__dirname, '../package.json')) as { version: string };
 
-// Instantiate context once at startup. Commands will receive this in subsequent migrations.
-const _ctx = createContext();
-void _ctx; // Available for passing to commands once they are migrated.
+// Instantiate context once at startup.
+const ctx = createContext();
 
 const program = new Command();
 
@@ -46,7 +45,7 @@ program.hook('preAction', () => {
 });
 
 registerLogin(program);
-registerLogout(program);
+registerLogout(program, ctx);
 registerClone(program);
 registerInit(program);
 registerPublish(program);
