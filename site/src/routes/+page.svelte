@@ -58,8 +58,8 @@
 		<!-- Left: copy -->
 		<div>
 			<h1 class="text-4xl font-bold leading-tight tracking-tight md:text-5xl">
-				The best AI coding setups exist.
-				<span class="text-primary">Now you can use&nbsp;them.</span>
+				Elite AI Coding Setups.
+				<span class="text-primary">Yours to Use &&nbsp;Share.</span>
 			</h1>
 			<p class="mt-5 max-w-lg text-lg leading-relaxed text-muted-foreground">
 				Developers are building incredible workflows with Claude Code, Cursor, and Copilot. Coati
@@ -83,9 +83,7 @@
 <!-- Problem -->
 <section class="border-t border-border/50 bg-card/50">
 	<div class="mx-auto max-w-3xl px-4 py-20 text-center">
-		<h2 class="text-3xl font-bold tracking-tight">
-			Sharing AI workflows is still a&nbsp;mess
-		</h2>
+		<h2 class="text-3xl font-bold tracking-tight">Sharing AI workflows is still a&nbsp;mess</h2>
 		<div class="mt-6 space-y-4 text-lg leading-relaxed text-muted-foreground">
 			<p>
 				Someone posts their Claude Code setup on Twitter. It looks amazing. But recreating it means
@@ -173,8 +171,8 @@
 				</div>
 				<h3 class="text-base font-semibold">Content creators</h3>
 				<p class="mt-2 text-sm leading-relaxed text-muted-foreground">
-					Link your audience directly to your setup. One command to clone means no more "how do I set
-					this up?" in the comments.
+					Link your audience directly to your setup. One command to clone means no more "how do I
+					set this up?" in the comments.
 				</p>
 			</div>
 		</div>
