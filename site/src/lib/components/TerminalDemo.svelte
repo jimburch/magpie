@@ -8,7 +8,10 @@
 	</div>
 	<!-- Content -->
 	<div class="p-5 font-mono text-sm leading-relaxed">
-		<p><span class="text-muted-foreground">$</span> <span class="text-foreground">coati clone jsmith/typescript-fullstack</span></p>
+		<p>
+			<span class="text-muted-foreground">$</span>
+			<span class="text-foreground">coati clone jsmith/typescript-fullstack</span>
+		</p>
 		<p class="mt-2 text-primary">&#10003; Cloned setup.json</p>
 		<p class="text-primary">&#10003; Installed 3 MCP servers</p>
 		<p class="text-primary">&#10003; Applied .claude/settings.json</p>

@@ -14,5 +14,8 @@ bun.lockb
 # CLI build output
 cli/dist/
 
+# Site build output
+site/build/
+
 # SvelteKit generated files
 **/.svelte-kit/

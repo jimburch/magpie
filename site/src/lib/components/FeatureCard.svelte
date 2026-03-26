@@ -1,8 +1,11 @@
 <script lang="ts">
 	import type { Component } from 'svelte';
 
-	const { icon: Icon, title, description }: { icon: Component; title: string; description: string } =
-		$props();
+	const {
+		icon: Icon,
+		title,
+		description
+	}: { icon: Component; title: string; description: string } = $props();
 </script>
 
 <div class="rounded-xl border border-border bg-card p-6">

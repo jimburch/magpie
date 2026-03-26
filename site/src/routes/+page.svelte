@@ -5,6 +5,19 @@
 	import FeatureCard from '$lib/components/FeatureCard.svelte';
 	import SectionHeading from '$lib/components/SectionHeading.svelte';
 	import { Upload, Search, Download, Terminal, Users, Video } from '@lucide/svelte';
+
+	const jsonLdScript =
+		'<script type="application/ld+json">' +
+		JSON.stringify({
+			'@context': 'https://schema.org',
+			'@type': 'WebSite',
+			name: 'Coati',
+			url: 'https://coati.sh',
+			description:
+				'Discover, clone, and run complete AI coding workflows. Like GitHub for your AI dev setup.'
+		}) +
+		'</' +
+		'script>';
 </script>
 
 <svelte:head>
@@ -35,14 +48,7 @@
 	<meta name="twitter:image" content="https://coati.sh/og.png" />
 
 	<!-- JSON-LD -->
-	{@html `<script type="application/ld+json">${JSON.stringify({
-		'@context': 'https://schema.org',
-		'@type': 'WebSite',
-		name: 'Coati',
-		url: 'https://coati.sh',
-		description:
-			'Discover, clone, and run complete AI coding workflows. Like GitHub for your AI dev setup.'
-	})}</script>`}
+	{@html jsonLdScript}
 </svelte:head>
 
 <!-- Hero -->
