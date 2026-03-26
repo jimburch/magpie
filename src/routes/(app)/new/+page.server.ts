@@ -1,7 +1,7 @@
 import type { PageServerLoad } from './$types';
-import { getAllAgents, getAllTags } from '$lib/server/queries/setups';
+import { setupRepo } from '$lib/server/queries/setupRepository';
 
 export const load: PageServerLoad = async () => {
-	const [agents, tags] = await Promise.all([getAllAgents(), getAllTags()]);
+	const [agents, tags] = await Promise.all([setupRepo.getAllAgents(), setupRepo.getAllTags()]);
 	return { agents, tags };
 };

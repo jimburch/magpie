@@ -1,13 +1,7 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import {
-	getSetupByOwnerSlug,
-	getSetupFiles,
-	getSetupTags,
-	getSetupAgents,
-	isSetupStarredByUser,
-	toggleStar
-} from '$lib/server/queries/setups';
+import { setupRepo } from '$lib/server/queries/setupRepository';
+import { toggleStar, getSetupByOwnerSlug } from '$lib/server/queries/setups';
 import {
 	getSetupComments,
 	createComment,
@@ -19,35 +13,31 @@ import { renderMarkdown } from '$lib/server/markdown';
 import { createCommentSchema } from '$lib/types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-	const setup = await getSetupByOwnerSlug(params.username, params.slug);
-	if (!setup) throw error(404, 'Setup not found');
+	const detail = await setupRepo.getDetail(params.username, params.slug, locals.user?.id);
+	if (!detail) throw error(404, 'Setup not found');
 
-	const [files, setupTags, setupAgents, comments] = await Promise.all([
-		getSetupFiles(setup.id),
-		getSetupTags(setup.id),
-		getSetupAgents(setup.id),
-		getSetupComments(setup.id)
-	]);
+	const { files } = detail;
 
 	// Find README file
-	const readmePath = setup.readmePath?.toLowerCase();
+	const readmePath = detail.readmePath?.toLowerCase();
 	const readmeFile = files.find((f) => {
 		const source = f.source.toLowerCase();
 		if (readmePath && source === readmePath) return true;
 		return source === 'readme.md' || source === 'readme';
 	});
 
-	const readmeHtml = readmeFile ? await renderMarkdown(readmeFile.content) : null;
-
-	const isStarred = locals.user ? await isSetupStarredByUser(setup.id, locals.user.id) : false;
+	const [readmeHtml, comments] = await Promise.all([
+		readmeFile ? renderMarkdown(readmeFile.content) : Promise.resolve(null),
+		getSetupComments(detail.id)
+	]);
 
 	return {
-		setup,
+		setup: detail,
 		files,
-		tags: setupTags,
-		agents: setupAgents,
+		tags: detail.tags,
+		agents: detail.agents,
 		readmeHtml,
-		isStarred,
+		isStarred: detail.isStarred,
 		comments
 	};
 };

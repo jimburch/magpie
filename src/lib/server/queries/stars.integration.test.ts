@@ -26,7 +26,8 @@ vi.mock('$env/static/private', () => ({
 import { eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { setups } from '$lib/server/db/schema';
-import { toggleStar, isSetupStarredByUser } from './setups';
+import { isSetupStarredByUser } from './setups';
+import { setupRepo } from './setupRepository';
 import { createTestUser, createTestSetup, deleteTestUsers } from './__tests__/db-test-helpers';
 
 const hasDatabase = !!(process.env.DATABASE_URL_TEST ?? process.env.DATABASE_URL);
@@ -44,18 +45,13 @@ describe.skipIf(!hasDatabase)('star queries — integration', () => {
 		const setup = await createTestSetup(user.id);
 		createdUserIds.push(user.id);
 
-		const nowStarred = await toggleStar(user.id, setup.id);
+		const result = await setupRepo.toggleStar(user.id, setup.id);
 
-		expect(nowStarred).toBe(true);
+		expect(result.starred).toBe(true);
+		expect(result.starsCount).toBe(1);
 
 		const isStarred = await isSetupStarredByUser(setup.id, user.id);
 		expect(isStarred).toBe(true);
-
-		const [{ starsCount }] = await db
-			.select({ starsCount: setups.starsCount })
-			.from(setups)
-			.where(eq(setups.id, setup.id));
-		expect(starsCount).toBe(1);
 	});
 
 	it('unstarring removes the relationship and decrements starsCount', async () => {
@@ -64,21 +60,16 @@ describe.skipIf(!hasDatabase)('star queries — integration', () => {
 		createdUserIds.push(user.id);
 
 		// Star first
-		await toggleStar(user.id, setup.id);
+		await setupRepo.toggleStar(user.id, setup.id);
 
 		// Then unstar
-		const nowStarred = await toggleStar(user.id, setup.id);
+		const result = await setupRepo.toggleStar(user.id, setup.id);
 
-		expect(nowStarred).toBe(false);
+		expect(result.starred).toBe(false);
+		expect(result.starsCount).toBe(0);
 
 		const isStarred = await isSetupStarredByUser(setup.id, user.id);
 		expect(isStarred).toBe(false);
-
-		const [{ starsCount }] = await db
-			.select({ starsCount: setups.starsCount })
-			.from(setups)
-			.where(eq(setups.id, setup.id));
-		expect(starsCount).toBe(0);
 	});
 
 	it('isSetupStarredByUser returns false when setup is not starred', async () => {
@@ -95,7 +86,7 @@ describe.skipIf(!hasDatabase)('star queries — integration', () => {
 		const setup = await createTestSetup(user.id);
 		createdUserIds.push(user.id);
 
-		await toggleStar(user.id, setup.id);
+		await setupRepo.toggleStar(user.id, setup.id);
 
 		const isStarred = await isSetupStarredByUser(setup.id, user.id);
 		expect(isStarred).toBe(true);
@@ -107,12 +98,12 @@ describe.skipIf(!hasDatabase)('star queries — integration', () => {
 		createdUserIds.push(user.id);
 
 		// First call: stars
-		const first = await toggleStar(user.id, setup.id);
-		expect(first).toBe(true);
+		const first = await setupRepo.toggleStar(user.id, setup.id);
+		expect(first.starred).toBe(true);
 
 		// Second call: unstars — behaves as toggle, no error thrown
-		const second = await toggleStar(user.id, setup.id);
-		expect(second).toBe(false);
+		const second = await setupRepo.toggleStar(user.id, setup.id);
+		expect(second.starred).toBe(false);
 
 		// Star count returns to 0
 		const [{ starsCount }] = await db
@@ -129,8 +120,8 @@ describe.skipIf(!hasDatabase)('star queries — integration', () => {
 		const setup = await createTestSetup(owner.id);
 		createdUserIds.push(owner.id, starrer1.id, starrer2.id);
 
-		await toggleStar(starrer1.id, setup.id);
-		await toggleStar(starrer2.id, setup.id);
+		await setupRepo.toggleStar(starrer1.id, setup.id);
+		await setupRepo.toggleStar(starrer2.id, setup.id);
 
 		const [{ starsCount }] = await db
 			.select({ starsCount: setups.starsCount })

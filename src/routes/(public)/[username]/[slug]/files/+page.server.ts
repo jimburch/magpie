@@ -1,13 +1,13 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { getSetupByOwnerSlug, getSetupFiles } from '$lib/server/queries/setups';
+import { setupRepo } from '$lib/server/queries/setupRepository';
 import { highlightCode } from '$lib/server/markdown';
 
 export const load: PageServerLoad = async ({ params, url }) => {
-	const setup = await getSetupByOwnerSlug(params.username, params.slug);
-	if (!setup) throw error(404, 'Setup not found');
+	const detail = await setupRepo.getDetail(params.username, params.slug);
+	if (!detail) throw error(404, 'Setup not found');
 
-	const files = await getSetupFiles(setup.id);
+	const { files } = detail;
 	if (files.length === 0) throw error(404, 'No files found');
 
 	const selectedPath = url.searchParams.get('file') ?? files[0].source;
@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	const highlightedHtml = await highlightCode(selectedFile.content, selectedFile.source);
 
 	return {
-		setup,
+		setup: detail,
 		files,
 		selectedFile,
 		highlightedHtml
