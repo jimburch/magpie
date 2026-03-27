@@ -156,7 +156,7 @@
 - [x] Activity feed (`(app)/feed/+page.svelte`):
   - Show recent activity from followed users (new setups, updates)
   - Simple chronological list for MVP
-- [ ] User profile enhancements:
+- [x] User profile enhancements:
   - Edit bio, website
   - "Starred setups" tab
   - Setup count, follower/following counts
@@ -184,7 +184,7 @@
 
 ### Tasks
 
-- [ ] Set up Hostinger VPS
+- [ ] Set up Hostinger VPS (already purchased)
 - [ ] Install PostgreSQL, Caddy, PM2, Node.js
 - [ ] Configure Caddy for HTTPS + reverse proxy
 - [ ] Set up GitHub Actions CI/CD:
