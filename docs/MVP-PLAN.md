@@ -164,10 +164,10 @@
   - Edit profile info (name, bio, website, location)
 - [x] "Copy CLI command" button on setup detail page
 - [x] Input validation everywhere (Zod) — comprehensive schemas in place
-- [ ] Open Graph meta tags for social sharing:
+- [x] Open Graph meta tags for social sharing:
   - `og:title`, `og:description`, `og:url`, `og:image` on public routes (setup detail, user profile, explore, landing)
   - Static placeholder image for `og:image` (swap for real logo later)
-- [ ] Global error page (`+error.svelte`):
+- [x] Global error page (`+error.svelte`):
   - Styled 404/500 page with navbar, friendly message, and link home
 - [ ] Simple global rate limiting:
   - Lightweight per-IP middleware (general-purpose, not per-endpoint)
