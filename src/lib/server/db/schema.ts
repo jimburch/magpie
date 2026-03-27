@@ -12,32 +12,15 @@ import {
 	uniqueIndex,
 	index
 } from 'drizzle-orm/pg-core';
+import { PLACEMENT_VALUES, COMPONENT_TYPE_VALUES, CATEGORY_VALUES } from '@coati/validation';
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
-export const placementEnum = pgEnum('placement', ['global', 'project', 'relative']);
+export const placementEnum = pgEnum('placement', PLACEMENT_VALUES);
 
-export const componentTypeEnum = pgEnum('component_type', [
-	'instruction',
-	'command',
-	'skill',
-	'mcp_server',
-	'hook',
-	'config',
-	'policy',
-	'agent_def',
-	'ignore',
-	'setup_script'
-]);
+export const componentTypeEnum = pgEnum('component_type', COMPONENT_TYPE_VALUES);
 
-export const categoryEnum = pgEnum('category', [
-	'web-dev',
-	'mobile',
-	'data-science',
-	'devops',
-	'systems',
-	'general'
-]);
+export const categoryEnum = pgEnum('category', CATEGORY_VALUES);
 
 export const actionTypeEnum = pgEnum('action_type', [
 	'created_setup',

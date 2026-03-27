@@ -63,7 +63,13 @@ export type ProfileUser = {
 };
 
 import { z } from 'zod';
-import { placementEnum, componentTypeEnum, categoryEnum } from '$lib/server/db/schema';
+import {
+	placementSchema,
+	componentTypeSchema,
+	categorySchema,
+	SLUG_NAME_REGEX,
+	SEMVER_REGEX
+} from '@coati/validation';
 
 export const apiSuccessSchema = <T extends z.ZodType>(dataSchema: T) =>
 	z.object({ data: dataSchema });
@@ -75,20 +81,16 @@ export const apiErrorSchema = z.object({
 
 export const createSetupSchema = z.object({
 	name: z.string().min(1).max(100),
-	slug: z
-		.string()
-		.min(1)
-		.max(100)
-		.regex(/^[a-z0-9]+(-[a-z0-9]+)*$/),
+	slug: z.string().min(1).max(100).regex(SLUG_NAME_REGEX),
 	description: z.string().max(300),
-	version: z.string().regex(/^\d+\.\d+\.\d+$/)
+	version: z.string().regex(SEMVER_REGEX)
 });
 
 export const createSetupFileSchema = z.object({
 	source: z.string().min(1),
 	target: z.string().min(1),
-	placement: z.enum(placementEnum.enumValues),
-	componentType: z.enum(componentTypeEnum.enumValues).default('instruction'),
+	placement: placementSchema,
+	componentType: componentTypeSchema.default('instruction'),
 	description: z.string().optional(),
 	content: z.string().min(1)
 });
@@ -96,7 +98,7 @@ export const createSetupFileSchema = z.object({
 // Cross-reference: cli/src/validation.ts must stay in sync with this schema
 export const createSetupWithFilesSchema = createSetupSchema.extend({
 	readmePath: z.string().optional(),
-	category: z.enum(categoryEnum.enumValues).optional(),
+	category: categorySchema.optional(),
 	license: z.string().max(50).optional(),
 	minToolVersion: z.string().max(20).optional(),
 	postInstall: z.string().optional(),
@@ -108,19 +110,11 @@ export const createSetupWithFilesSchema = createSetupSchema.extend({
 
 export const updateSetupSchema = z.object({
 	name: z.string().min(1).max(100).optional(),
-	slug: z
-		.string()
-		.min(1)
-		.max(100)
-		.regex(/^[a-z0-9]+(-[a-z0-9]+)*$/)
-		.optional(),
+	slug: z.string().min(1).max(100).regex(SLUG_NAME_REGEX).optional(),
 	description: z.string().max(300).optional(),
-	version: z
-		.string()
-		.regex(/^\d+\.\d+\.\d+$/)
-		.optional(),
+	version: z.string().regex(SEMVER_REGEX).optional(),
 	readmePath: z.string().nullable().optional(),
-	category: z.enum(categoryEnum.enumValues).nullable().optional(),
+	category: categorySchema.nullable().optional(),
 	license: z.string().max(50).nullable().optional(),
 	minToolVersion: z.string().max(20).nullable().optional(),
 	postInstall: z.string().nullable().optional(),

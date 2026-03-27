@@ -11,6 +11,9 @@ importers:
       '@coati/agents-registry':
         specifier: workspace:*
         version: link:packages/agents-registry
+      '@coati/validation':
+        specifier: workspace:*
+        version: link:packages/shared-validation
       '@tailwindcss/typography':
         specifier: ^0.5.19
         version: 0.5.19(tailwindcss@4.2.1)
@@ -177,6 +180,19 @@ importers:
         version: 2.1.9(@types/node@22.19.15)(jsdom@28.1.0)(lightningcss@1.31.1)
 
   packages/agents-registry:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@22.19.15)(jsdom@28.1.0)(lightningcss@1.31.1)
+
+  packages/shared-validation:
+    dependencies:
+      zod:
+        specifier: '>=3.0.0'
+        version: 4.3.6
     devDependencies:
       typescript:
         specifier: ^5.9.3
