@@ -97,7 +97,7 @@
 				<div>
 					<!-- Top-level comment -->
 					<div class="flex gap-3">
-						<Avatar class="mt-0.5 size-7 shrink-0">
+						<Avatar class="mt-0.5 size-5 shrink-0 lg:size-7">
 							<AvatarImage src={comment.authorAvatarUrl} alt={comment.authorUsername} />
 							<AvatarFallback>{comment.authorUsername[0].toUpperCase()}</AvatarFallback>
 						</Avatar>
@@ -147,7 +147,7 @@
 
 					<!-- Inline reply form -->
 					{#if activeReplyId === comment.id}
-						<div class="ml-10 mt-3">
+						<div class="ml-7 mt-3 lg:ml-10">
 							<form
 								method="POST"
 								action="?/comment"
@@ -191,10 +191,10 @@
 
 					<!-- Replies -->
 					{#if repliesByParent.get(comment.id)?.length}
-						<div class="ml-10 mt-3 space-y-3">
+						<div class="ml-7 mt-3 space-y-3 lg:ml-10">
 							{#each repliesByParent.get(comment.id) ?? [] as reply (reply.id)}
 								<div class="flex gap-3">
-									<Avatar class="mt-0.5 size-6 shrink-0">
+									<Avatar class="mt-0.5 size-5 shrink-0 lg:size-6">
 										<AvatarImage src={reply.authorAvatarUrl} alt={reply.authorUsername} />
 										<AvatarFallback>{reply.authorUsername[0].toUpperCase()}</AvatarFallback>
 									</Avatar>

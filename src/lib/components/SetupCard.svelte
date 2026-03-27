@@ -19,9 +19,9 @@
 
 <a
 	href="/{username}/{setup.slug}"
-	class="block rounded-lg border border-border bg-card p-4 transition-colors hover:border-foreground/20 hover:bg-accent/50"
+	class="block rounded-lg border border-border bg-card p-3 transition-colors hover:border-foreground/20 hover:bg-accent/50 lg:p-4"
 >
-	<h3 class="truncate text-base font-semibold text-foreground">{setup.name}</h3>
+	<h3 class="truncate text-sm font-semibold text-foreground lg:text-base">{setup.name}</h3>
 
 	{#if setup.description}
 		<p class="mt-1 line-clamp-2 text-sm text-muted-foreground">{setup.description}</p>
