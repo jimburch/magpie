@@ -1,5 +1,6 @@
 import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import { db } from '$lib/server/db';
+import { counters } from '$lib/server/counters';
 import {
 	setups,
 	setupFiles,
@@ -103,10 +104,7 @@ export async function createSetup(userId: string, data: CreateSetupInput) {
 			await tx.insert(setupTags).values(data.tagIds.map((tagId) => ({ setupId: setup.id, tagId })));
 		}
 
-		await tx
-			.update(users)
-			.set({ setupsCount: sql`${users.setupsCount} + 1` })
-			.where(eq(users.id, userId));
+		await counters.setupCreated(tx, userId);
 
 		await tx.insert(activities).values({ userId, setupId: setup.id, actionType: 'created_setup' });
 
@@ -161,10 +159,7 @@ export async function deleteSetup(id: string, userId: string) {
 			.returning();
 
 		if (deleted.length > 0) {
-			await tx
-				.update(users)
-				.set({ setupsCount: sql`${users.setupsCount} - 1` })
-				.where(eq(users.id, userId));
+			await counters.setupDeleted(tx, userId);
 		}
 
 		return deleted.length;
@@ -457,10 +452,9 @@ export async function searchSetups(filters: {
 }
 
 export async function recordClone(setupId: string): Promise<void> {
-	await db
-		.update(setups)
-		.set({ clonesCount: sql`${setups.clonesCount} + 1` })
-		.where(eq(setups.id, setupId));
+	await db.transaction(async (tx) => {
+		await counters.cloneRecorded(tx, setupId);
+	});
 }
 
 export async function getAgentsForSetups(setupIds: string[]) {
