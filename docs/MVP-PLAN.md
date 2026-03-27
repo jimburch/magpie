@@ -169,13 +169,13 @@
   - Static placeholder image for `og:image` (swap for real logo later)
 - [x] Global error page (`+error.svelte`):
   - Styled 404/500 page with navbar, friendly message, and link home
-- [ ] Simple global rate limiting:
+- [x] Simple global rate limiting:
   - Lightweight per-IP middleware (general-purpose, not per-endpoint)
   - Protect against basic abuse without overengineering
 - [ ] Loading/error states audit:
   - Verify all pages handle loading and error states gracefully
   - Fill remaining gaps (file viewer, profile pages, etc.)
-- [ ] Mobile responsiveness pass:
+- [x] Mobile responsiveness pass:
   - Full pass across all routes — nothing should be broken on mobile
   - Priority on public-facing pages (landing, explore, setup detail, profiles)
   - Navbar, file tree/viewer, and settings need attention

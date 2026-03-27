@@ -74,10 +74,17 @@
 	>
 		<!-- Left: copy -->
 		<div>
-			<h1 class="text-3xl font-bold leading-tight tracking-tight sm:text-4xl md:text-5xl">
-				Elite AI Coding Setups.
-				<span class="text-primary">Yours to Use &&nbsp;Share.</span>
-			</h1>
+			<div class="flex items-center gap-4 md:gap-5">
+				<img
+					src="/coati.png"
+					alt="Coati logo"
+					class="hidden h-[4.5rem] w-auto shrink-0 md:block"
+				/>
+				<h1 class="text-3xl font-bold leading-tight tracking-tight sm:text-4xl md:text-[2.6rem] md:leading-tight">
+					Elite AI Coding Setups.
+					<span class="text-primary">Yours to Use &&nbsp;Share.</span>
+				</h1>
+			</div>
 			<p class="mt-5 max-w-lg text-lg leading-relaxed text-muted-foreground">
 				Developers are building incredible workflows with Claude Code, Cursor, and Copilot. Coati
 				lets you discover their complete setup and clone it to your machine in one command.
