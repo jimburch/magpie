@@ -184,7 +184,7 @@
 
 ### Tasks
 
-- [ ] Set up DigitalOcean Droplet
+- [ ] Set up Hostinger VPS
 - [ ] Install PostgreSQL, Caddy, PM2, Node.js
 - [ ] Configure Caddy for HTTPS + reverse proxy
 - [ ] Set up GitHub Actions CI/CD:
