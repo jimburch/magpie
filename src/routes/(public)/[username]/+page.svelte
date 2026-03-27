@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
+	import { enhance } from '$app/forms';
 	import { Avatar, AvatarImage, AvatarFallback } from '$lib/components/ui/avatar';
 	import { Separator } from '$lib/components/ui/separator';
+	import { Button } from '$lib/components/ui/button';
+	import { Label } from '$lib/components/ui/label';
+	import { Input } from '$lib/components/ui/input';
+	import { Textarea } from '$lib/components/ui/textarea';
+	import { Dialog, DialogContent, DialogTitle } from '$lib/components/ui/dialog';
 	import SetupCard from '$lib/components/SetupCard.svelte';
 	import FollowButton from '$lib/components/FollowButton.svelte';
 	import ActivityFeed from '$lib/components/ActivityFeed.svelte';
@@ -24,6 +30,9 @@
 
 	const isOwnProfile = $derived(data.currentUserId === data.profile.id);
 	const showFollowButton = $derived(data.currentUserId !== null && !isOwnProfile);
+
+	let editProfileOpen = $state(false);
+	let savingProfile = $state(false);
 
 	// Hydrate dates (server sends strings over the wire)
 	const activityItems = $derived(
@@ -55,21 +64,58 @@
 		</Avatar>
 
 		<div class="min-w-0 flex-1">
-			<div class="flex flex-wrap items-center gap-3">
-				<h1 class="text-2xl font-bold">{data.profile.username}</h1>
-				{#if showFollowButton}
-					<FollowButton
-						isFollowing={data.isFollowing}
-						{followersCount}
-						onoptimisticchange={(following) => {
-							followersCount = following ? followersCount + 1 : followersCount - 1;
-						}}
-					/>
-				{/if}
+			<div class="flex flex-wrap items-start gap-3">
+				<div class="min-w-0 flex-1">
+					{#if data.profile.name}
+						<h1 class="text-2xl font-bold" data-testid="profile-name">{data.profile.name}</h1>
+						<p class="text-sm text-muted-foreground" data-testid="profile-username">
+							@{data.profile.username}
+						</p>
+					{:else}
+						<h1 class="text-2xl font-bold" data-testid="profile-username">
+							@{data.profile.username}
+						</h1>
+					{/if}
+				</div>
+				<div class="flex items-center gap-2">
+					{#if showFollowButton}
+						<FollowButton
+							isFollowing={data.isFollowing}
+							{followersCount}
+							onoptimisticchange={(following) => {
+								followersCount = following ? followersCount + 1 : followersCount - 1;
+							}}
+						/>
+					{/if}
+					{#if isOwnProfile}
+						<Button
+							variant="outline"
+							size="sm"
+							onclick={() => (editProfileOpen = true)}
+							data-testid="edit-profile-button"
+						>
+							Edit profile
+						</Button>
+					{/if}
+				</div>
 			</div>
 
 			{#if data.profile.bio}
 				<p class="mt-1 text-muted-foreground">{data.profile.bio}</p>
+			{/if}
+
+			{#if data.profile.location}
+				<div
+					class="mt-2 flex items-center gap-1 text-sm text-muted-foreground"
+					data-testid="profile-location"
+				>
+					<svg class="size-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+						<path
+							d="M8 0a5.53 5.53 0 0 0-5.5 5.5c0 4.069 5.5 10.5 5.5 10.5S13.5 9.569 13.5 5.5A5.53 5.53 0 0 0 8 0zm0 7.5a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
+						/>
+					</svg>
+					{data.profile.location}
+				</div>
 			{/if}
 
 			<div class="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
@@ -160,6 +206,87 @@
 			</a>
 		</nav>
 	</div>
+
+	<!-- Edit Profile Dialog -->
+	{#if isOwnProfile}
+		<Dialog open={editProfileOpen} onOpenChange={(v) => (editProfileOpen = v)}>
+			<DialogContent data-testid="edit-profile-modal">
+				<DialogTitle>Edit profile</DialogTitle>
+				<form
+					method="POST"
+					action="?/updateProfile"
+					use:enhance={() => {
+						savingProfile = true;
+						return async ({ result, update }) => {
+							savingProfile = false;
+							if (result.type === 'success') {
+								editProfileOpen = false;
+							}
+							await update();
+						};
+					}}
+					class="mt-4 space-y-4"
+					data-testid="edit-profile-form"
+				>
+					<div class="space-y-1.5">
+						<Label for="edit-name">Name</Label>
+						<Input
+							id="edit-name"
+							name="name"
+							type="text"
+							placeholder="Your display name"
+							value={data.profile.name ?? ''}
+							maxlength={100}
+						/>
+					</div>
+					<div class="space-y-1.5">
+						<Label for="edit-bio">Bio</Label>
+						<Textarea
+							id="edit-bio"
+							name="bio"
+							placeholder="Tell others a bit about yourself"
+							rows={3}
+							maxlength={500}>{data.profile.bio ?? ''}</Textarea
+						>
+					</div>
+					<div class="space-y-1.5">
+						<Label for="edit-website">Website</Label>
+						<Input
+							id="edit-website"
+							name="websiteUrl"
+							type="url"
+							placeholder="https://example.com"
+							value={data.profile.websiteUrl ?? ''}
+						/>
+					</div>
+					<div class="space-y-1.5">
+						<Label for="edit-location">Location</Label>
+						<Input
+							id="edit-location"
+							name="location"
+							type="text"
+							placeholder="City, Country"
+							value={data.profile.location ?? ''}
+							maxlength={100}
+						/>
+					</div>
+					<div class="flex justify-end gap-2 pt-2">
+						<Button
+							type="button"
+							variant="outline"
+							onclick={() => (editProfileOpen = false)}
+							disabled={savingProfile}
+						>
+							Cancel
+						</Button>
+						<Button type="submit" disabled={savingProfile}>
+							{savingProfile ? 'Saving...' : 'Save'}
+						</Button>
+					</div>
+				</form>
+			</DialogContent>
+		</Dialog>
+	{/if}
 
 	<!-- Tab content -->
 	{#if data.tab === 'setups'}

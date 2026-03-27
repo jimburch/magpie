@@ -1,6 +1,6 @@
-import { error, redirect } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import { getUserByUsername } from '$lib/server/queries/users';
+import { getUserByUsername, updateUserProfile } from '$lib/server/queries/users';
 import {
 	getSetupsByUserId,
 	getAgentsForSetups,
@@ -8,6 +8,7 @@ import {
 } from '$lib/server/queries/setups';
 import { isFollowing, setFollow } from '$lib/server/queries/follows';
 import { getProfileFeed } from '$lib/server/queries/activities';
+import { updateProfileSchema } from '$lib/types';
 
 export type ProfileTab = 'setups' | 'starred' | 'activity';
 
@@ -97,5 +98,33 @@ export const actions: Actions = {
 		const currentlyFollowing = await isFollowing(locals.user.id, targetUser.id);
 		const result = await setFollow(locals.user.id, targetUser.id, !currentlyFollowing);
 		return { isFollowing: result.following, followersCount: result.followersCount };
+	},
+
+	updateProfile: async ({ request, locals, params }) => {
+		if (!locals.user) throw redirect(302, '/auth/login/github');
+
+		const targetUser = await getUserByUsername(params.username);
+		if (!targetUser) throw error(404, 'User not found');
+
+		if (locals.user.id !== targetUser.id) throw error(403, 'Forbidden');
+
+		const formData = await request.formData();
+		const raw = {
+			name: formData.get('name') as string,
+			bio: formData.get('bio') as string,
+			websiteUrl: formData.get('websiteUrl') as string,
+			location: formData.get('location') as string
+		};
+
+		const parsed = updateProfileSchema.safeParse(raw);
+		if (!parsed.success) {
+			return fail(400, {
+				updateProfileError: parsed.error.issues[0].message,
+				fields: raw
+			});
+		}
+
+		await updateUserProfile(locals.user.id, parsed.data);
+		return { updateProfileSuccess: true };
 	}
 };
