@@ -32,6 +32,10 @@
 			createdAt: new Date(item.createdAt)
 		}))
 	);
+
+	function tabHref(tab: string) {
+		return `/${data.profile.username}?tab=${tab}`;
+	}
 </script>
 
 <svelte:head>
@@ -121,41 +125,78 @@
 
 	<Separator class="my-6" />
 
-	<!-- Setups -->
-	<section>
-		<h2 class="mb-4 text-lg font-semibold">Setups</h2>
+	<!-- Tabs -->
+	<div class="mb-6" data-testid="profile-tabs">
+		<nav class="-mb-px flex gap-0 border-b border-border" aria-label="Profile tabs">
+			<a
+				href={tabHref('setups')}
+				data-testid="tab-setups"
+				class="border-b-2 px-4 py-2 text-sm font-medium transition-colors {data.tab === 'setups'
+					? 'border-foreground text-foreground'
+					: 'border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground'}"
+				aria-current={data.tab === 'setups' ? 'page' : undefined}
+			>
+				Setups
+			</a>
+			<a
+				href={tabHref('starred')}
+				data-testid="tab-starred"
+				class="border-b-2 px-4 py-2 text-sm font-medium transition-colors {data.tab === 'starred'
+					? 'border-foreground text-foreground'
+					: 'border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground'}"
+				aria-current={data.tab === 'starred' ? 'page' : undefined}
+			>
+				Starred
+			</a>
+			<a
+				href={tabHref('activity')}
+				data-testid="tab-activity"
+				class="border-b-2 px-4 py-2 text-sm font-medium transition-colors {data.tab === 'activity'
+					? 'border-foreground text-foreground'
+					: 'border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground'}"
+				aria-current={data.tab === 'activity' ? 'page' : undefined}
+			>
+				Activity
+			</a>
+		</nav>
+	</div>
 
-		{#if data.setups.length > 0}
-			<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-				{#each data.setups as setup (setup.id)}
-					<SetupCard {setup} username={data.profile.username} />
-				{/each}
-			</div>
-		{:else}
-			<p class="text-muted-foreground">No setups yet.</p>
-		{/if}
-	</section>
-
-	<Separator class="my-6" />
-
-	<!-- Activity -->
-	<section data-testid="profile-activity">
-		<div class="mb-4 flex items-center justify-between">
-			<h2 class="text-lg font-semibold">Activity</h2>
-			{#if activityItems.length > 0}
-				<a
-					href="/{data.profile.username}/activity"
-					class="text-sm text-muted-foreground hover:text-foreground hover:underline underline-offset-4"
-				>
-					View all activity
-				</a>
+	<!-- Tab content -->
+	{#if data.tab === 'setups'}
+		<section data-testid="tab-panel-setups">
+			{#if data.setups.length > 0}
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					{#each data.setups as setup (setup.id)}
+						<SetupCard {setup} username={data.profile.username} />
+					{/each}
+				</div>
+			{:else}
+				<div class="py-12 text-center" data-testid="setups-empty">
+					<p class="text-muted-foreground">No setups yet.</p>
+				</div>
 			{/if}
-		</div>
-
-		<ActivityFeed
-			items={activityItems}
-			emptyMessage="No activity yet."
-			paginationEndpoint="/api/v1/users/{data.profile.username}/activity"
-		/>
-	</section>
+		</section>
+	{:else if data.tab === 'starred'}
+		<section data-testid="tab-panel-starred">
+			{#if data.starredSetups.length > 0}
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					{#each data.starredSetups as setup (setup.id)}
+						<SetupCard {setup} username={setup.ownerUsername} showAuthor={true} />
+					{/each}
+				</div>
+			{:else}
+				<div class="py-12 text-center" data-testid="starred-empty">
+					<p class="text-muted-foreground">No starred setups yet.</p>
+				</div>
+			{/if}
+		</section>
+	{:else}
+		<section data-testid="tab-panel-activity">
+			<ActivityFeed
+				items={activityItems}
+				emptyMessage="No activity yet."
+				paginationEndpoint="/api/v1/users/{data.profile.username}/activity"
+			/>
+		</section>
+	{/if}
 </div>
