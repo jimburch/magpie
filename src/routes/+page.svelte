@@ -29,21 +29,21 @@
 <!-- Hero -->
 <section class="overflow-hidden border-b border-border">
 	<div
-		class="mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 md:grid-cols-2 md:gap-16 md:py-24"
+		class="mx-auto grid max-w-7xl items-center gap-8 px-4 py-10 lg:grid-cols-2 lg:gap-16 lg:py-24"
 	>
 		<!-- Left: copy -->
 		<div>
 			<p class="mb-3 text-sm font-medium uppercase tracking-widest text-muted-foreground">
 				Open-source workflow sharing
 			</p>
-			<h1 class="text-4xl font-bold leading-tight tracking-tight md:text-5xl">
+			<h1 class="text-3xl font-bold leading-tight tracking-tight lg:text-5xl">
 				Share your AI coding&nbsp;workflows
 			</h1>
-			<p class="mt-4 max-w-lg text-lg leading-relaxed text-muted-foreground">
+			<p class="mt-4 max-w-lg text-base leading-relaxed text-muted-foreground lg:text-lg">
 				Package your config files, tools, and automation into shareable setups. Discover what other
 				developers are running and clone it in one command.
 			</p>
-			<div class="mt-8 flex flex-wrap gap-3">
+			<div class="mt-6 flex flex-wrap gap-3 lg:mt-8">
 				<a href="/auth/login/github" class={buttonVariants({ variant: 'default', size: 'lg' })}>
 					Sign in with GitHub
 				</a>
@@ -57,7 +57,7 @@
 		</div>
 
 		<!-- Right: decorative setup.json mock -->
-		<div class="relative hidden md:block">
+		<div class="relative hidden lg:block">
 			<div class="rounded-lg border border-border bg-card p-5 font-mono text-sm shadow-xl">
 				<div class="mb-3 flex items-center gap-2">
 					<span class="size-3 rounded-full bg-destructive/60"></span>
@@ -101,9 +101,9 @@
 </section>
 
 <!-- Trending Setups -->
-<section class="mx-auto max-w-7xl px-4 py-16">
-	<div class="mb-8 flex items-baseline justify-between">
-		<h2 class="text-2xl font-bold tracking-tight">Trending Setups</h2>
+<section class="mx-auto max-w-7xl px-4 py-10 lg:py-16">
+	<div class="mb-6 flex items-baseline justify-between lg:mb-8">
+		<h2 class="text-xl font-bold tracking-tight lg:text-2xl">Trending Setups</h2>
 		<a
 			href="/explore?sort=trending"
 			class="text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -127,10 +127,12 @@
 
 <!-- How It Works -->
 <section class="border-t border-border bg-muted/30">
-	<div class="mx-auto max-w-7xl px-4 py-16">
-		<h2 class="mb-10 text-center text-2xl font-bold tracking-tight">How it works</h2>
+	<div class="mx-auto max-w-7xl px-4 py-10 lg:py-16">
+		<h2 class="mb-6 text-center text-xl font-bold tracking-tight lg:mb-10 lg:text-2xl">
+			How it works
+		</h2>
 
-		<div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+		<div class="grid grid-cols-1 gap-6 md:grid-cols-3 lg:gap-8">
 			<div class="text-center">
 				<div class="mx-auto mb-4 flex size-12 items-center justify-center rounded-lg bg-primary/10">
 					<Upload class="size-6 text-primary" />
@@ -160,6 +162,27 @@
 					Install any setup to your machine with a single command from the CLI.
 				</p>
 			</div>
+		</div>
+	</div>
+</section>
+
+<!-- CTA -->
+<section class="border-t border-border">
+	<div class="mx-auto max-w-7xl px-4 py-10 text-center lg:py-16">
+		<h2 class="text-xl font-bold tracking-tight lg:text-2xl">Ready to share your workflow?</h2>
+		<p
+			class="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground lg:mt-4 lg:text-base"
+		>
+			Join the community, publish your setup, and help other developers level up their AI coding
+			environment.
+		</p>
+		<div class="mt-6 flex flex-wrap justify-center gap-3 lg:mt-8">
+			<a href="/auth/login/github" class={buttonVariants({ variant: 'default', size: 'lg' })}>
+				Get started for free
+			</a>
+			<a href="/explore" class={buttonVariants({ variant: 'outline', size: 'lg' })}>
+				Browse setups
+			</a>
 		</div>
 	</div>
 </section>
