@@ -47,7 +47,11 @@
 		property="og:description"
 		content="The best AI coding setups exist — now you can use them. Discover and clone complete developer workflows with a single command."
 	/>
-	<meta property="og:image" content="https://coati.sh/og.png" />
+	<meta property="og:image" content="https://coati.sh/og-image.png" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta property="og:image:alt" content="Coati - Share your AI coding workflows" />
+	<meta property="og:site_name" content="Coati" />
 
 	<!-- Twitter -->
 	<meta name="twitter:card" content="summary_large_image" />
@@ -56,7 +60,8 @@
 		name="twitter:description"
 		content="The best AI coding setups exist — now you can use them. Discover and clone complete developer workflows with a single command."
 	/>
-	<meta name="twitter:image" content="https://coati.sh/og.png" />
+	<meta name="twitter:image" content="https://coati.sh/og-image.png" />
+	<meta name="twitter:image:alt" content="Coati - Share your AI coding workflows" />
 
 	<!-- JSON-LD -->
 	{@html jsonLdScript}
