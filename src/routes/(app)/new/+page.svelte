@@ -278,15 +278,15 @@
 		'border-input bg-background h-9 w-full rounded-md border px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring';
 </script>
 
-<div class="mx-auto max-w-3xl px-4 py-8">
-	<h1 class="mb-8 text-2xl font-bold">Create a new setup</h1>
+<div class="mx-auto max-w-3xl px-4 py-6 lg:py-8">
+	<h1 class="mb-6 text-xl font-bold lg:mb-8 lg:text-2xl">Create a new setup</h1>
 
 	<form
 		onsubmit={(e) => {
 			e.preventDefault();
 			handleSubmit();
 		}}
-		class="space-y-8"
+		class="space-y-6 lg:space-y-8"
 	>
 		<!-- Metadata -->
 		<div class="space-y-4">
@@ -323,7 +323,7 @@
 				<p class="text-muted-foreground mt-1 text-xs">{description.length}/300</p>
 			</div>
 
-			<div class="grid grid-cols-3 gap-4">
+			<div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
 				<div>
 					<label for="version" class="mb-1.5 block text-sm font-medium">Version</label>
 					<Input id="version" bind:value={version} placeholder="0.1.0" required />
@@ -356,7 +356,7 @@
 
 		<!-- Tags -->
 		<div>
-			<h2 class="mb-3 text-lg font-semibold">Tags</h2>
+			<h2 class="mb-2 text-base font-semibold lg:mb-3 lg:text-lg">Tags</h2>
 			{#if data.tags.length === 0}
 				<p class="text-muted-foreground text-sm">No tags available yet.</p>
 			{:else}
@@ -378,7 +378,7 @@
 
 		<!-- Agents -->
 		<div>
-			<h2 class="mb-3 text-lg font-semibold">Agents</h2>
+			<h2 class="mb-2 text-base font-semibold lg:mb-3 lg:text-lg">Agents</h2>
 			{#if data.agents.length === 0}
 				<p class="text-muted-foreground text-sm">No agents available yet.</p>
 			{:else}
@@ -399,8 +399,8 @@
 		</div>
 
 		<!-- Components -->
-		<div class="space-y-6">
-			<h2 class="text-lg font-semibold">Components</h2>
+		<div class="space-y-4 lg:space-y-6">
+			<h2 class="text-base font-semibold lg:text-lg">Components</h2>
 
 			<!-- Instructions -->
 			<div>
@@ -420,7 +420,7 @@
 				</p>
 				<div class="space-y-4">
 					{#each instructions as inst, i (i)}
-						<div class="space-y-3 rounded-lg border p-4">
+						<div class="space-y-3 rounded-lg border p-3 lg:p-4">
 							<div class="flex items-center justify-between">
 								<span class="text-sm font-medium">Instruction {i + 1}</span>
 								{#if instructions.length > 1}
@@ -435,7 +435,7 @@
 									>
 								{/if}
 							</div>
-							<div class="grid grid-cols-2 gap-3">
+							<div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
 								<div>
 									<label for="inst-path-{i}" class="mb-1 block text-xs font-medium">File path</label
 									>
@@ -488,7 +488,7 @@
 				{/if}
 				<div class="space-y-4">
 					{#each commands as cmd, i (i)}
-						<div class="space-y-3 rounded-lg border p-4">
+						<div class="space-y-3 rounded-lg border p-3 lg:p-4">
 							<div class="flex items-center justify-between">
 								<span class="text-sm font-medium">/{cmd.name || '...'}</span>
 								<Button
@@ -501,7 +501,7 @@
 									}}>Remove</Button
 								>
 							</div>
-							<div class="grid grid-cols-2 gap-3">
+							<div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
 								<div>
 									<label for="cmd-name-{i}" class="mb-1 block text-xs font-medium"
 										>Command name</label
@@ -561,7 +561,7 @@
 				{/if}
 				<div class="space-y-4">
 					{#each skills as skill, i (i)}
-						<div class="space-y-3 rounded-lg border p-4">
+						<div class="space-y-3 rounded-lg border p-3 lg:p-4">
 							<div class="flex items-center justify-between">
 								<span class="text-sm font-medium">{skill.name || 'Unnamed skill'}</span>
 								<Button
@@ -574,7 +574,7 @@
 									}}>Remove</Button
 								>
 							</div>
-							<div class="grid grid-cols-2 gap-3">
+							<div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
 								<div>
 									<label for="skill-name-{i}" class="mb-1 block text-xs font-medium"
 										>Skill name</label
@@ -634,7 +634,7 @@
 				{/if}
 				<div class="space-y-4">
 					{#each mcpServers as server, i (i)}
-						<div class="space-y-3 rounded-lg border p-4">
+						<div class="space-y-3 rounded-lg border p-3 lg:p-4">
 							<div class="flex items-center justify-between">
 								<span class="text-sm font-medium">{server.name || 'Unnamed server'}</span>
 								<Button
@@ -650,7 +650,7 @@
 									}}>Remove</Button
 								>
 							</div>
-							<div class="grid grid-cols-2 gap-3">
+							<div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
 								<div>
 									<label for="mcp-name-{i}" class="mb-1 block text-xs font-medium"
 										>Server name</label
@@ -713,7 +713,7 @@
 				{/if}
 				<div class="space-y-4">
 					{#each hooks as hook, i (i)}
-						<div class="space-y-3 rounded-lg border p-4">
+						<div class="space-y-3 rounded-lg border p-3 lg:p-4">
 							<div class="flex items-center justify-between">
 								<span class="text-sm font-medium">{hook.event}</span>
 								<Button
@@ -729,7 +729,7 @@
 									}}>Remove</Button
 								>
 							</div>
-							<div class="grid grid-cols-2 gap-3">
+							<div class="grid grid-cols-1 gap-3 lg:grid-cols-2">
 								<div>
 									<label for="hook-event-{i}" class="mb-1 block text-xs font-medium">Event</label>
 									<select id="hook-event-{i}" bind:value={hook.event} class={selectClass}>
@@ -775,7 +775,7 @@
 
 		<!-- Prerequisites -->
 		<div>
-			<h2 class="mb-3 text-lg font-semibold">Prerequisites</h2>
+			<h2 class="mb-2 text-base font-semibold lg:mb-3 lg:text-lg">Prerequisites</h2>
 			<p class="text-muted-foreground mb-3 text-xs">
 				What users need before cloning this setup (e.g. "Node.js 20+", "PostgreSQL 15+").
 			</p>
@@ -812,7 +812,7 @@
 
 		<!-- Post-install commands -->
 		<div>
-			<h2 class="mb-3 text-lg font-semibold">Post-install commands</h2>
+			<h2 class="mb-2 text-base font-semibold lg:mb-3 lg:text-lg">Post-install commands</h2>
 			<p class="text-muted-foreground mb-3 text-xs">
 				Commands displayed after a successful clone. Add each step separately.
 			</p>
@@ -849,7 +849,7 @@
 
 		<!-- README -->
 		<div>
-			<h2 class="mb-3 text-lg font-semibold">README</h2>
+			<h2 class="mb-2 text-base font-semibold lg:mb-3 lg:text-lg">README</h2>
 			<textarea
 				bind:value={readmeContent}
 				rows={8}
