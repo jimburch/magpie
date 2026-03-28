@@ -30,6 +30,12 @@ export const actionTypeEnum = pgEnum('action_type', [
 	'cloned_setup'
 ]);
 
+export const feedbackCategoryEnum = pgEnum('feedback_category', [
+	'bug',
+	'improvement',
+	'feature-request'
+]);
+
 // ─── Tier 1: No FK dependencies ─────────────────────────────────────────────
 
 export const users = pgTable('users', {
@@ -250,6 +256,25 @@ export const activities = pgTable(
 	(table) => [index('activities_user_id_created_at_idx').on(table.userId, table.createdAt)]
 );
 
+// ─── Feedback ────────────────────────────────────────────────────────────────
+
+export const feedbackSubmissions = pgTable(
+	'feedback_submissions',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		userId: uuid('user_id')
+			.references(() => users.id, { onDelete: 'cascade' })
+			.notNull(),
+		category: feedbackCategoryEnum('category').notNull(),
+		title: text('title').notNull(),
+		description: text('description').notNull(),
+		pageUrl: text('page_url').notNull(),
+		githubIssueUrl: text('github_issue_url').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+	},
+	(table) => [index('feedback_submissions_user_id_idx').on(table.userId)]
+);
+
 // ─── Relations ──────────────────────────────────────────────────────────────
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -379,3 +404,6 @@ export type NewComment = typeof comments.$inferInsert;
 
 export type Activity = typeof activities.$inferSelect;
 export type NewActivity = typeof activities.$inferInsert;
+
+export type FeedbackSubmission = typeof feedbackSubmissions.$inferSelect;
+export type NewFeedbackSubmission = typeof feedbackSubmissions.$inferInsert;
