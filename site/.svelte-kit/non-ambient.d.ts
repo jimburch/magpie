@@ -36,6 +36,6 @@ declare module "$app/types" {
 		};
 		Pathname(): "/";
 		ResolvedPathname(): `${"" | `/${string}`}${ReturnType<AppTypes['Pathname']>}`;
-		Asset(): "/apple-touch-icon.png" | "/coati.png" | "/favicon.png" | "/favicon.svg" | "/robots.txt" | "/sitemap.xml" | string & {};
+		Asset(): "/apple-touch-icon.png" | "/coati.png" | "/favicon.png" | "/favicon.svg" | "/og-image.png" | "/robots.txt" | "/sitemap.xml" | string & {};
 	}
 }
