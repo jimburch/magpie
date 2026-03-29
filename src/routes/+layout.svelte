@@ -3,6 +3,7 @@
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import FeedbackWidget from '$lib/components/FeedbackWidget.svelte';
+	import NavigationProgress from '$lib/components/NavigationProgress.svelte';
 	import '../app.css';
 
 	let { data, children } = $props();
@@ -19,4 +20,5 @@
 	</main>
 	<Footer />
 	<FeedbackWidget user={data.user} />
+	<NavigationProgress />
 </div>
