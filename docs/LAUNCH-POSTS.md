@@ -72,6 +72,7 @@ Before posting anything, these assets need to exist:
 > Think of it like GitHub repos, but for your AI coding environment.
 >
 > Still building, but I'd love early feedback:
+>
 > - Would you use this to share your own setup, to discover others' setups, or both?
 > - What AI coding tools are you using day to day?
 >
@@ -170,6 +171,7 @@ Send 2-3 emails between waitlist signup and platform launch to build anticipatio
 > Try it: [link]
 
 **Notes for posting:**
+
 - Post Tuesday-Thursday, 8-10am ET
 - Block the entire day for comment responses — reply within minutes for the first 2-3 hours
 - Have technical answers ready (architecture, security model, why SvelteKit, how file placement works)
@@ -185,6 +187,7 @@ Send 2-3 emails between waitlist signup and platform launch to build anticipatio
 > So I built Coati. You package your full setup and publish it. Anyone can run `coati clone jimburch/fullstack-claude` and get everything installed on their machine.
 >
 > It handles:
+>
 > - CLAUDE.md and config files
 > - MCP server configurations
 > - Custom skills and hooks
@@ -350,11 +353,13 @@ Send 2-3 emails between waitlist signup and platform launch to build anticipatio
 **Tagline:** Dotfiles for the AI age — browse, clone, and share complete dev workflows
 
 **Description:**
+
 > Coati is where developers share their complete AI coding setups. Package your CLAUDE.md, MCP servers, custom skills, configs, and scripts into a shareable setup. Anyone can clone it with `coati clone username/setup`.
 >
 > Browse trending setups, discover new workflows, and level up your AI coding environment.
 
 **Maker Comment:**
+
 > Hey Product Hunt — I built Coati because I kept running into the same problem: I'd find an amazing AI coding workflow on Twitter or Reddit, and recreating it took forever.
 >
 > Coati makes sharing your complete workflow as easy as pushing a repo. The CLI handles everything — file placement, conflict resolution, the works.
@@ -362,6 +367,7 @@ Send 2-3 emails between waitlist signup and platform launch to build anticipatio
 > I'd love your feedback. What setups would you want to find on here?
 
 **Product Hunt prep notes:**
+
 - Launch on a Tuesday, Wednesday, or Thursday
 - Line up 10+ supporters to engage on launch day before posting
 - Have a 30-60 second demo video ready showing the clone flow
@@ -411,6 +417,7 @@ Create an embeddable badge (like npm version badges or "Deploy to Heroku" button
 ```
 
 Every README that includes this badge becomes a permanent referral channel. Prioritize getting this into:
+
 - All seed setups
 - Any influencer setups you help create
 - Your own repos
@@ -421,13 +428,13 @@ Every README that includes this badge becomes a permanent referral channel. Prio
 
 ### HN Day (Primary Launch)
 
-| Time | Action |
-|------|--------|
-| 8:00 AM ET | Post Show HN |
-| 8:00-11:00 AM | Respond to every comment within minutes. Be technical, honest, concise. |
+| Time             | Action                                                                       |
+| ---------------- | ---------------------------------------------------------------------------- |
+| 8:00 AM ET       | Post Show HN                                                                 |
+| 8:00-11:00 AM    | Respond to every comment within minutes. Be technical, honest, concise.      |
 | 11:00 AM-2:00 PM | Continue monitoring, respond within 15 min. Share on Twitter that it's live. |
-| 2:00-6:00 PM | Post to r/ClaudeCode and r/cursor. Continue HN engagement. |
-| 6:00 PM+ | Wind down. Send launch email to waitlist. |
+| 2:00-6:00 PM     | Post to r/ClaudeCode and r/cursor. Continue HN engagement.                   |
+| 6:00 PM+         | Wind down. Send launch email to waitlist.                                    |
 
 ### Reddit Day (Day 2)
 
@@ -468,6 +475,7 @@ Turn the Dev.to article into multiple formats to extend its reach without writin
 Proactively add value in threads where people are sharing or asking about AI coding workflows — without being spammy.
 
 **Where to watch:**
+
 - r/ClaudeCode — any "share your setup" or "what's in your CLAUDE.md" threads
 - r/cursor — any "share your .cursorrules" threads
 - Twitter/X — search "claude code setup," "cursor workflow," "share my AI setup"

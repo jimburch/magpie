@@ -4,7 +4,8 @@ import { createIssue, createFeedbackIssue } from './github-issues';
 const BASE_PARAMS = {
 	token: 'test-token',
 	owner: 'testowner',
-	repo: 'testrepo'
+	repo: 'testrepo',
+	environment: 'testing' as const
 };
 
 function mockFetchWith(responses: Array<{ ok: boolean; status: number; json?: unknown }>) {
@@ -129,6 +130,7 @@ describe('createFeedbackIssue', () => {
 		const fetchMock = mockFetchWith([
 			{ ok: true, status: 201 }, // beta-feedback label
 			{ ok: true, status: 201 }, // bug label
+			{ ok: true, status: 201 }, // env:testing label
 			{ ok: true, status: 201, json: { number: 10, html_url: 'https://github.com/t/r/issues/10' } }
 		]);
 		vi.stubGlobal('fetch', fetchMock);
@@ -143,7 +145,7 @@ describe('createFeedbackIssue', () => {
 		});
 
 		// Issue creation call body should include both labels
-		const [, issueOpts] = fetchMock.mock.calls[2];
+		const [, issueOpts] = fetchMock.mock.calls[3];
 		const body = JSON.parse((issueOpts as RequestInit).body as string);
 		expect(body.labels).toContain('beta-feedback');
 		expect(body.labels).toContain('bug');
@@ -151,6 +153,7 @@ describe('createFeedbackIssue', () => {
 
 	it('includes page URL and username in issue body', async () => {
 		const fetchMock = mockFetchWith([
+			{ ok: true, status: 201 },
 			{ ok: true, status: 201 },
 			{ ok: true, status: 201 },
 			{ ok: true, status: 201, json: { number: 11, html_url: 'https://github.com/t/r/issues/11' } }
@@ -166,7 +169,7 @@ describe('createFeedbackIssue', () => {
 			username: 'bob'
 		});
 
-		const [, issueOpts] = fetchMock.mock.calls[2];
+		const [, issueOpts] = fetchMock.mock.calls[3];
 		const body = JSON.parse((issueOpts as RequestInit).body as string);
 		expect(body.body).toContain('https://coati.dev/explore');
 		expect(body.body).toContain('@bob');
@@ -174,6 +177,7 @@ describe('createFeedbackIssue', () => {
 
 	it('uses feature-request label for feature-request category', async () => {
 		const fetchMock = mockFetchWith([
+			{ ok: true, status: 201 },
 			{ ok: true, status: 201 },
 			{ ok: true, status: 201 },
 			{ ok: true, status: 201, json: { number: 12, html_url: 'https://github.com/t/r/issues/12' } }
@@ -189,13 +193,14 @@ describe('createFeedbackIssue', () => {
 			username: 'carol'
 		});
 
-		const [, issueOpts] = fetchMock.mock.calls[2];
+		const [, issueOpts] = fetchMock.mock.calls[3];
 		const body = JSON.parse((issueOpts as RequestInit).body as string);
 		expect(body.labels).toContain('feature-request');
 	});
 
 	it('includes title and description in issue body', async () => {
 		const fetchMock = mockFetchWith([
+			{ ok: true, status: 201 },
 			{ ok: true, status: 201 },
 			{ ok: true, status: 201 },
 			{ ok: true, status: 201, json: { number: 13, html_url: 'https://github.com/t/r/issues/13' } }
@@ -211,7 +216,7 @@ describe('createFeedbackIssue', () => {
 			username: 'dave'
 		});
 
-		const [, issueOpts] = fetchMock.mock.calls[2];
+		const [, issueOpts] = fetchMock.mock.calls[3];
 		const body = JSON.parse((issueOpts as RequestInit).body as string);
 		expect(body.body).toContain('Login fails');
 		expect(body.body).toContain('Cannot log in after session expires');
