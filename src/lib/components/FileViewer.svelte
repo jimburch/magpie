@@ -9,12 +9,13 @@
 			description: string | null;
 			content: string;
 		};
-		highlightedHtml: string;
+		highlightedHtml: string | null | undefined;
 	}
 
 	const { file, highlightedHtml }: Props = $props();
 
-	const lineCount = $derived(file.content.split('\n').length);
+	const isEmpty = $derived(file.content === '');
+	const lineCount = $derived(isEmpty ? 0 : file.content.split('\n').length);
 </script>
 
 <div class="overflow-hidden rounded-lg border border-border">
@@ -48,6 +49,12 @@
 	<div
 		class="overflow-x-auto [&_code]:text-sm [&_pre]:!m-0 [&_pre]:!rounded-none [&_pre]:!border-0 [&_pre]:p-4"
 	>
-		{@html highlightedHtml}
+		{#if isEmpty}
+			<div class="p-4 text-sm italic text-muted-foreground">This file is empty</div>
+		{:else if highlightedHtml}
+			{@html highlightedHtml}
+		{:else}
+			<pre class="!m-0 !rounded-none !border-0 p-4 text-sm">{file.content}</pre>
+		{/if}
 	</div>
 </div>
